@@ -1,0 +1,793 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}</style></head><body>
+<title>Intelligent CI/CD — Migii JLPT API</title>
+<meta name="description" content="Hệ thống CI/CD thông minh tích hợp Auto Testing, RAG, MCP và AI Code Review cho Migii JLPT API.">
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #EEF2F8;
+    --surface:   #FFFFFF;
+    --border:    #D4DCE8;
+    --text:      #1A2B3C;
+    --muted:     #5A6A7E;
+    --faint:     #8A96A8;
+
+    --pipeline:  #1B4FD8;
+    --test:      #0A6E42;
+    --rag:       #8B3A0E;
+    --mcp:       #4C2D8F;
+    --review:    #0C5A87;
+
+    --test-bg:   #EDFAF4;
+    --rag-bg:    #FEF5ED;
+    --mcp-bg:    #F3EFFE;
+    --review-bg: #EBF6FD;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── HERO ─────────────────────────────────────────────────── */
+  .hero {
+    background: var(--text);
+    color: #F0F5FF;
+    padding: 72px 40px 60px;
+  }
+  .hero-inner {
+    max-width: 1060px;
+    margin: 0 auto;
+  }
+  .hero-eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #7EA8F0;
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 800;
+    letter-spacing: -.025em;
+    line-height: 1.08;
+    text-wrap: balance;
+    margin-bottom: 20px;
+  }
+  .hero h1 span {
+    color: #60A5FA;
+  }
+  .hero-sub {
+    font-size: 17px;
+    color: #94A8C4;
+    max-width: 620px;
+    line-height: 1.65;
+    margin-bottom: 48px;
+  }
+
+  /* Stats bar */
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 10px;
+    overflow: hidden;
+    background: rgba(255,255,255,.04);
+  }
+  .stat {
+    padding: 20px 24px;
+    border-right: 1px solid rgba(255,255,255,.08);
+  }
+  .stat:last-child { border-right: none; }
+  .stat-num {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -.02em;
+    color: #F0F5FF;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .stat-label {
+    font-size: 12px;
+    color: #7A90AB;
+    font-weight: 500;
+    letter-spacing: .02em;
+  }
+
+  /* ── SECTION WRAPPER ──────────────────────────────────────── */
+  .section {
+    max-width: 1060px;
+    margin: 0 auto;
+    padding: 64px 40px;
+  }
+  .section-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--pipeline);
+    margin-bottom: 10px;
+  }
+  .section-heading {
+    font-size: clamp(22px, 3vw, 30px);
+    font-weight: 800;
+    letter-spacing: -.02em;
+    color: var(--text);
+    text-wrap: balance;
+    margin-bottom: 14px;
+  }
+  .section-body {
+    font-size: 15px;
+    color: var(--muted);
+    max-width: 680px;
+    line-height: 1.7;
+  }
+
+  /* ── PIPELINE DIAGRAM ─────────────────────────────────────── */
+  .pipeline-section {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .pipeline-section .section { padding-bottom: 56px; }
+
+  .pipeline-flow {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0;
+    margin-top: 36px;
+    position: relative;
+  }
+  /* connecting line */
+  .pipeline-flow::before {
+    content: '';
+    position: absolute;
+    top: 28px;
+    left: 10%;
+    right: 10%;
+    height: 2px;
+    background: linear-gradient(90deg, var(--test), var(--test) 25%, var(--rag) 25%, var(--rag) 50%, var(--mcp) 50%, var(--mcp) 75%, var(--review) 75%, var(--review));
+    opacity: .25;
+    z-index: 0;
+  }
+  .pipe-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 0 8px;
+    position: relative;
+    z-index: 1;
+  }
+  .pipe-dot {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    margin-bottom: 14px;
+    flex-shrink: 0;
+    border: 2px solid transparent;
+  }
+  .pipe-step.push .pipe-dot   { background: #1A2B3C; color: #7EA8F0; border-color: #2D4460; }
+  .pipe-step.test .pipe-dot   { background: var(--test-bg); color: var(--test); border-color: #A7E8CE; }
+  .pipe-step.rag .pipe-dot    { background: var(--rag-bg); color: var(--rag); border-color: #F5CBA7; }
+  .pipe-step.mcp .pipe-dot    { background: var(--mcp-bg); color: var(--mcp); border-color: #C4B5FD; }
+  .pipe-step.airev .pipe-dot  { background: var(--review-bg); color: var(--review); border-color: #93C5E8; }
+
+  .pipe-step-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 5px;
+    letter-spacing: -.01em;
+  }
+  .pipe-step-sub {
+    font-size: 11.5px;
+    color: var(--faint);
+    line-height: 1.45;
+  }
+  .pipe-arrow {
+    display: none;
+  }
+
+  /* ── FEATURES TIMELINE ────────────────────────────────────── */
+  .features-section { }
+  .features-section .section-body { margin-bottom: 0; }
+
+  .features-grid {
+    margin-top: 48px;
+    display: grid;
+    gap: 20px;
+  }
+
+  .feature-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 5px 1fr;
+  }
+  .feature-rail {
+    background: var(--test);
+  }
+  .feature-card.rag  .feature-rail { background: var(--rag); }
+  .feature-card.mcp  .feature-rail { background: var(--mcp); }
+  .feature-card.airev .feature-rail { background: var(--review); }
+
+  .feature-body {
+    padding: 28px 32px;
+  }
+  .feature-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+  .feature-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+    background: var(--test-bg);
+    color: var(--test);
+  }
+  .feature-card.rag  .feature-icon { background: var(--rag-bg); color: var(--rag); }
+  .feature-card.mcp  .feature-icon { background: var(--mcp-bg); color: var(--mcp); }
+  .feature-card.airev .feature-icon { background: var(--review-bg); color: var(--review); }
+
+  .feature-name {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -.02em;
+    color: var(--text);
+    line-height: 1.2;
+  }
+  .feature-tagline {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 3px;
+    font-weight: 500;
+  }
+
+  .feature-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 680px) {
+    .feature-cols { grid-template-columns: 1fr; }
+    .stats-bar { grid-template-columns: 1fr 1fr; }
+    .pipeline-flow { grid-template-columns: 1fr; }
+    .pipeline-flow::before { display: none; }
+  }
+
+  .feature-col h4 {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin-bottom: 10px;
+  }
+  .feature-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+  .feature-list li {
+    font-size: 13.5px;
+    color: var(--muted);
+    line-height: 1.5;
+    padding-left: 14px;
+    position: relative;
+  }
+  .feature-list li::before {
+    content: '·';
+    position: absolute;
+    left: 0;
+    color: var(--faint);
+    font-weight: 700;
+  }
+  .feature-list li strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .feature-tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-top: 14px;
+    background: var(--test-bg);
+    color: var(--test);
+  }
+  .feature-card.rag  .feature-tag { background: var(--rag-bg);    color: var(--rag); }
+  .feature-card.mcp  .feature-tag { background: var(--mcp-bg);    color: var(--mcp); }
+  .feature-card.airev .feature-tag { background: var(--review-bg); color: var(--review); }
+
+  /* ── INTEGRATION DIAGRAM ──────────────────────────────────── */
+  .integration-section {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .integration-grid {
+    margin-top: 40px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 680px) {
+    .integration-grid { grid-template-columns: 1fr; }
+  }
+
+  .int-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px 28px;
+    background: var(--bg);
+  }
+  .int-card h3 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 12px;
+    letter-spacing: -.01em;
+  }
+  .int-flow {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .int-step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .int-step-dot {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+  }
+  .int-step-dot.d-test   { background: var(--test-bg);   color: var(--test); }
+  .int-step-dot.d-rag    { background: var(--rag-bg);    color: var(--rag); }
+  .int-step-dot.d-mcp    { background: var(--mcp-bg);    color: var(--mcp); }
+  .int-step-dot.d-review { background: var(--review-bg); color: var(--review); }
+  .int-step-dot.d-pipe   { background: #EEF2F8; color: var(--pipeline); }
+  .int-step-arrow {
+    margin-left: 7px;
+    color: var(--faint);
+    font-size: 11px;
+  }
+
+  /* ── SUMMARY / FOOTER ─────────────────────────────────────── */
+  .summary-section { }
+  .summary-cards {
+    margin-top: 36px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  @media (max-width: 680px) {
+    .summary-cards { grid-template-columns: 1fr; }
+  }
+  .sum-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+  }
+  .sum-number {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -.03em;
+    color: var(--pipeline);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .sum-desc {
+    font-size: 13.5px;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+
+  .footer-bar {
+    background: var(--text);
+    padding: 24px 40px;
+    text-align: center;
+    font-size: 12px;
+    color: #4A6080;
+    letter-spacing: .03em;
+  }
+
+  /* code inline */
+  code {
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    font-size: .875em;
+    background: #EEF2F8;
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: var(--pipeline);
+  }
+</style>
+
+<!-- ═══════════════════════════════════════════════════════════
+     HERO
+═════════════════════════════════════════════════════════════ -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">Migii JLPT API · CI/CD Infrastructure</div>
+    <h1>Pipeline CI/CD<br><span>Thông minh, Tự động hóa</span></h1>
+    <p class="hero-sub">
+      Hệ thống tích hợp liên tục được xây dựng quanh bốn tầng: kiểm thử tự động,
+      engine hiểu codebase (RAG), tích hợp AI trực tiếp vào IDE (MCP),
+      và đánh giá code bằng AI trên mỗi Merge Request.
+    </p>
+    <div class="stats-bar">
+      <div class="stat">
+        <div class="stat-num">366+</div>
+        <div class="stat-label">Unit tests tự động</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">3</div>
+        <div class="stat-label">Collections RAG index</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">1</div>
+        <div class="stat-label">MCP tool expose cho IDE</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">MR</div>
+        <div class="stat-label">AI review mỗi lần tạo MR</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     PIPELINE OVERVIEW
+═════════════════════════════════════════════════════════════ -->
+<div class="pipeline-section">
+  <div class="section">
+    <div class="section-title">Luồng hoạt động</div>
+    <h2 class="section-heading">Bốn tầng kết nối với nhau</h2>
+    <p class="section-body">
+      Mỗi lần push code, pipeline tự động kích hoạt theo trình tự. Kết quả của giai đoạn
+      trước làm đầu vào cho giai đoạn sau — RAG index được cập nhật sau mỗi deploy,
+      và chính index đó cung cấp context cho AI review ở MR tiếp theo.
+    </p>
+    <div class="pipeline-flow">
+      <div class="pipe-step push">
+        <div class="pipe-dot">⬆</div>
+        <div class="pipe-step-name">Commit / MR</div>
+        <div class="pipe-step-sub">Push lên GitLab<br>trigger Jenkins</div>
+      </div>
+      <div class="pipe-step test">
+        <div class="pipe-dot">✓</div>
+        <div class="pipe-step-name">Auto Testing</div>
+        <div class="pipe-step-sub">Unit + E2E<br>Coverage report</div>
+      </div>
+      <div class="pipe-step rag">
+        <div class="pipe-dot">⟳</div>
+        <div class="pipe-step-name">Deploy + Reindex</div>
+        <div class="pipe-step-sub">RAG cập nhật<br>sau mỗi deploy</div>
+      </div>
+      <div class="pipe-step mcp">
+        <div class="pipe-dot">⚡</div>
+        <div class="pipe-step-name">MCP Server</div>
+        <div class="pipe-step-sub">Dev dùng context<br>ngay trong IDE</div>
+      </div>
+      <div class="pipe-step airev">
+        <div class="pipe-dot">◈</div>
+        <div class="pipe-step-name">AI Code Review</div>
+        <div class="pipe-step-sub">Comment tự động<br>trên từng MR</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FEATURES
+═════════════════════════════════════════════════════════════ -->
+<div class="features-section">
+  <div class="section">
+    <div class="section-title">Tính năng chi tiết</div>
+    <h2 class="section-heading">Bốn tầng của hệ thống</h2>
+
+    <div class="features-grid">
+
+      <!-- ── TESTING ───────────────────────────── -->
+      <div class="feature-card test">
+        <div class="feature-rail"></div>
+        <div class="feature-body">
+          <div class="feature-header">
+            <div class="feature-icon">✓</div>
+            <div>
+              <div class="feature-name">Auto Testing</div>
+              <div class="feature-tagline">Unit Tests + E2E Tests tự động trên CI</div>
+            </div>
+          </div>
+          <div class="feature-cols">
+            <div class="feature-col">
+              <h4>Unit Tests</h4>
+              <ul class="feature-list">
+                <li>Chạy trên <strong>mọi MR</strong> và branch <code>main/develop</code></li>
+                <li>Container <code>node:20-alpine</code> trên remote server — môi trường sạch, nhất quán</li>
+                <li>Coverage report Cobertura + lcov — tích hợp Jenkins <strong>recordCoverage</strong></li>
+                <li>Sau build: tự tạo <strong>task trên Baocao</strong> với link coverage</li>
+                <li>Test fail không block pipeline — E2E vẫn chạy tiếp</li>
+              </ul>
+            </div>
+            <div class="feature-col">
+              <h4>E2E Tests</h4>
+              <ul class="feature-list">
+                <li>Spin <strong>MySQL + Redis</strong> thật qua docker-compose — không mock DB</li>
+                <li>Test container kết nối vào cùng compose network</li>
+                <li>Timeout 20 phút, cleanup hoàn toàn sau mỗi build</li>
+                <li>Fail → <strong>UNSTABLE</strong>, không block deploy develop</li>
+                <li>Fail trên <strong>production</strong> → block deploy (FAILURE)</li>
+              </ul>
+            </div>
+          </div>
+          <div class="feature-tag">Chạy trên: MR, main, develop, release/*, testing/*</div>
+        </div>
+      </div>
+
+      <!-- ── RAG ──────────────────────────────── -->
+      <div class="feature-card rag">
+        <div class="feature-rail"></div>
+        <div class="feature-body">
+          <div class="feature-header">
+            <div class="feature-icon">⟳</div>
+            <div>
+              <div class="feature-name">RAG — Codebase Context Engine</div>
+              <div class="feature-tagline">Semantic search toàn bộ codebase — luôn fresh sau mỗi deploy</div>
+            </div>
+          </div>
+          <div class="feature-cols">
+            <div class="feature-col">
+              <h4>Index 3 collections</h4>
+              <ul class="feature-list">
+                <li><strong>docs</strong>: CLAUDE.md, PRD, TEST_PLAN, feature specs, API/DB docs</li>
+                <li><strong>tests</strong>: Tất cả <code>*.spec.ts</code> và <code>*.e2e-spec.ts</code></li>
+                <li><strong>source</strong>: Toàn bộ TypeScript source (trừ spec + d.ts)</li>
+                <li>Embedding model: <code>all-MiniLM-L6-v2</code>, ChromaDB persist trên disk</li>
+                <li><strong>Incremental</strong> — chỉ re-embed file thực sự thay đổi (~30s)</li>
+              </ul>
+            </div>
+            <div class="feature-col">
+              <h4>Tự động reindex trên CI</h4>
+              <ul class="feature-list">
+                <li>Chạy sau mỗi deploy develop và production</li>
+                <li><strong>Self-heal</strong>: nếu image <code>migii-rag</code> mất → tự build lại từ Dockerfile</li>
+                <li>Hai index song song: <code>api_test</code> (develop) và <code>api</code> (production)</li>
+                <li>Dev dùng: <code>make index</code>, <code>make search q="..."</code>, <code>make gen q="..."</code></li>
+                <li>Fail → <strong>UNSTABLE</strong>, không block deploy</li>
+              </ul>
+            </div>
+          </div>
+          <div class="feature-tag">Reindex sau: Deploy develop · Deploy production</div>
+        </div>
+      </div>
+
+      <!-- ── MCP ──────────────────────────────── -->
+      <div class="feature-card mcp">
+        <div class="feature-rail"></div>
+        <div class="feature-body">
+          <div class="feature-header">
+            <div class="feature-icon">⚡</div>
+            <div>
+              <div class="feature-name">MCP Server — RAG trong IDE</div>
+              <div class="feature-tagline">Claude Code truy cập codebase context ngay trong session làm việc</div>
+            </div>
+          </div>
+          <div class="feature-cols">
+            <div class="feature-col">
+              <h4>Cách hoạt động</h4>
+              <ul class="feature-list">
+                <li><code>rag/mcp_server.py</code> expose tool <strong>rag_search</strong> qua stdio</li>
+                <li>Claude Code spawn server 1 lần khi mở session — luôn có sẵn</li>
+                <li>Embedding load lazy lần đầu — các lần sau gần như tức thì</li>
+                <li>Log rotate 1MB vào <code>rag/rag_server.log</code></li>
+                <li>Config sẵn trong <code>.mcp.json</code> — không cần setup thêm</li>
+              </ul>
+            </div>
+            <div class="feature-col">
+              <h4>Dev nhận được gì</h4>
+              <ul class="feature-list">
+                <li>Skills tự gọi <code>rag_search</code> ngầm: <code>/vibe-feature</code>, <code>/test:unit-test</code>, <code>/solo:coding</code></li>
+                <li>Context <strong>từ cùng session</strong> — có toàn bộ conversation history</li>
+                <li>Debug retrieval: <code>make search q="..."</code> in JSON để xem context trước</li>
+                <li>Brainstorm standalone: <code>make gen q="..."</code> mở session Claude riêng</li>
+              </ul>
+            </div>
+          </div>
+          <div class="feature-tag">Config: .mcp.json · Tool: rag_search · Server: mcp_server.py</div>
+        </div>
+      </div>
+
+      <!-- ── AI REVIEW ────────────────────────── -->
+      <div class="feature-card airev">
+        <div class="feature-rail"></div>
+        <div class="feature-body">
+          <div class="feature-header">
+            <div class="feature-icon">◈</div>
+            <div>
+              <div class="feature-name">AI Code Review</div>
+              <div class="feature-tagline">Claude phân tích diff + RAG context, post comment tự động lên MR</div>
+            </div>
+          </div>
+          <div class="feature-cols">
+            <div class="feature-col">
+              <h4>Quy trình 3 bước</h4>
+              <ul class="feature-list">
+                <li><strong>① Lấy diff</strong>: chỉ file <code>.ts</code> source (bỏ spec + d.ts), truncate 40k chars</li>
+                <li><strong>② Query RAG</strong>: trích tên file từ diff → tìm pattern tương tự trong codebase (top-3)</li>
+                <li><strong>③ Gọi Claude API</strong>: <code>claude-sonnet-4-6</code>, max 1024 tokens, system prompt chuyên biệt</li>
+                <li>Post comment qua <code>addGitLabMRComment</code> — không cần token riêng</li>
+                <li>Fail → <strong>UNSTABLE</strong>, không block merge</li>
+              </ul>
+            </div>
+            <div class="feature-col">
+              <h4>Claude được hướng dẫn kiểm tra</h4>
+              <ul class="feature-list">
+                <li><strong>Layer violations</strong>: logic trong controller/entity, raw SQL trong service</li>
+                <li><strong>SQL injection</strong>: nối string thay vì parameterized query</li>
+                <li><strong>Auth missing</strong>: endpoint nhạy cảm thiếu middleware</li>
+                <li><strong>Premium check sai</strong>: phải dùng <code>sumRemainingTime &gt; 0</code></li>
+                <li><strong>Business rules</strong>: max 3 devices, header format <code>Authorization: &lt;token&gt;</code></li>
+              </ul>
+              <div class="feature-tag">Output: Critical · Warnings · Suggestions</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     HOW THEY CONNECT
+═════════════════════════════════════════════════════════════ -->
+<div class="integration-section">
+  <div class="section">
+    <div class="section-title">Liên kết</div>
+    <h2 class="section-heading">Các tầng nuôi nhau như thế nào</h2>
+    <p class="section-body">
+      Đây là điểm khác biệt so với các hệ thống rời rạc: mỗi tầng sản xuất đầu ra
+      mà tầng tiếp theo tiêu thụ. RAG không chỉ là công cụ dev — nó là bộ nhớ sống
+      của codebase, được cập nhật liên tục bởi chính CI.
+    </p>
+    <div class="integration-grid">
+
+      <div class="int-card">
+        <h3>Vòng Deploy → Reindex → Review</h3>
+        <div class="int-flow">
+          <div class="int-step">
+            <div class="int-step-dot d-pipe">1</div>
+            Code merge vào <code>develop</code>
+          </div>
+          <div class="int-step-arrow">↓</div>
+          <div class="int-step">
+            <div class="int-step-dot d-test">2</div>
+            Unit + E2E tests pass
+          </div>
+          <div class="int-step-arrow">↓</div>
+          <div class="int-step">
+            <div class="int-step-dot d-pipe">3</div>
+            Build + Deploy lên môi trường test
+          </div>
+          <div class="int-step-arrow">↓</div>
+          <div class="int-step">
+            <div class="int-step-dot d-rag">4</div>
+            RAG tự reindex codebase mới nhất
+          </div>
+          <div class="int-step-arrow">↓</div>
+          <div class="int-step">
+            <div class="int-step-dot d-review">5</div>
+            MR tiếp theo — AI review có context fresh
+          </div>
+        </div>
+      </div>
+
+      <div class="int-card">
+        <h3>RAG phục vụ cả Dev lẫn CI</h3>
+        <div class="int-flow">
+          <div class="int-step">
+            <div class="int-step-dot d-rag">A</div>
+            CI build RAG index sau mỗi deploy
+          </div>
+          <div class="int-step-arrow">↓ cùng index, hai người dùng</div>
+          <div class="int-step">
+            <div class="int-step-dot d-mcp">B</div>
+            Dev dùng qua MCP trong IDE — <code>rag_search</code>
+          </div>
+          <div class="int-step">
+            <div class="int-step-dot d-review">C</div>
+            Jenkins query cùng index khi review MR
+          </div>
+          <div class="int-step-arrow">↓ kết quả</div>
+          <div class="int-step">
+            <div class="int-step-dot d-pipe">D</div>
+            Dev viết code đúng pattern ngay từ đầu<br>
+            <span style="font-size:12px;color:var(--faint);margin-left:0">→ AI review ít cần flag hơn</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SUMMARY
+═════════════════════════════════════════════════════════════ -->
+<div class="summary-section">
+  <div class="section">
+    <div class="section-title">Tổng kết</div>
+    <h2 class="section-heading">Giá trị mang lại</h2>
+    <div class="summary-cards">
+      <div class="sum-card">
+        <div class="sum-number">Zero</div>
+        <div class="sum-desc">
+          Setup thủ công cho developer mới. <code>make -C rag bootstrap</code>
+          lo trọn bộ: cài deps, seed index lần đầu, verify — Claude Code tự
+          kết nối MCP sau đó.
+        </div>
+      </div>
+      <div class="sum-card">
+        <div class="sum-number">~30s</div>
+        <div class="sum-desc">
+          Thời gian reindex RAG sau lần đầu nhờ incremental indexing —
+          chỉ re-embed file thực sự thay đổi. Index luôn fresh mà không
+          tốn tài nguyên.
+        </div>
+      </div>
+      <div class="sum-card">
+        <div class="sum-number">Mỗi MR</div>
+        <div class="sum-desc">
+          Nhận một AI review tự động với context từ codebase thật.
+          Claude biết architecture, business rules, và patterns của project —
+          không phải review chung chung.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer-bar">
+  Migii JLPT API · CI/CD Infrastructure · 2026
+</div>
+
+</body></html>

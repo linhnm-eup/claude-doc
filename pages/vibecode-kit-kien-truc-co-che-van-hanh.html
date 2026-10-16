@@ -1,0 +1,674 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}</style></head><body>
+<title>vibecode-kit — Kiến trúc &amp; Cơ chế vận hành</title>
+<style>
+  :root {
+    color-scheme: light;
+    --ink:        #151a22;
+    --ink-soft:   #55606d;
+    --ink-faint:  #8790a0;
+    --paper:      #f1f3f5;
+    --surface:    #ffffff;
+    --surface-2:  #e9ecef;
+    --line:       #d8dce1;
+    --accent:     #0f7d84;
+    --accent-ink: #ffffff;
+    --accent-soft:#e1f1f0;
+    --code-bg:    #eef0f2;
+    --shadow:     0 1px 2px rgba(21,26,34,.06), 0 8px 24px rgba(21,26,34,.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --ink:        #eef1f4;
+      --ink-soft:   #aab4c0;
+      --ink-faint:  #7c8794;
+      --paper:      #11151b;
+      --surface:    #171c24;
+      --surface-2:  #1e2530;
+      --line:       #2a3038;
+      --accent:     #4dd8cf;
+      --accent-ink: #08211f;
+      --accent-soft:#15302e;
+      --code-bg:    #1b212a;
+      --shadow:     0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --ink:        #eef1f4;
+    --ink-soft:   #aab4c0;
+    --ink-faint:  #7c8794;
+    --paper:      #11151b;
+    --surface:    #171c24;
+    --surface-2:  #1e2530;
+    --line:       #2a3038;
+    --accent:     #4dd8cf;
+    --accent-ink: #08211f;
+    --accent-soft:#15302e;
+    --code-bg:    #1b212a;
+    --shadow:     0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.35);
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  code, .mono, .kbd, .eyebrow, table.spec, .tag {
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Consolas, monospace;
+  }
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible, button:focus-visible, summary:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px;
+  }
+  h1, h2, h3 { text-wrap: balance; font-weight: 700; letter-spacing: -0.01em; }
+  p { max-width: 68ch; }
+  code {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: .05em .35em;
+    font-size: .88em;
+    white-space: nowrap;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 240px minmax(0,1fr);
+    gap: 0;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  nav.toc {
+    position: sticky; top: 0; align-self: start;
+    max-height: 100vh; overflow-y: auto;
+    padding: 28px 18px 40px 24px;
+    border-right: 1px solid var(--line);
+  }
+  nav.toc .kit { display:flex; align-items:center; gap:8px; margin-bottom: 22px; }
+  nav.toc .kit .dot { width:10px; height:10px; border-radius:2px; background: var(--accent); flex: none; }
+  nav.toc .kit span { font-size: 13px; font-weight:700; letter-spacing:.02em; }
+  nav.toc ol { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2px; counter-reset: sec; }
+  nav.toc li { counter-increment: sec; }
+  nav.toc a {
+    display:flex; gap:10px; color: var(--ink-soft); text-decoration:none;
+    font-size: 13.5px; padding: 6px 8px; border-radius: 6px;
+  }
+  nav.toc a:hover { background: var(--surface-2); color: var(--ink); }
+  nav.toc a::before {
+    content: counter(sec, decimal-leading-zero);
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: 11.5px; color: var(--ink-faint); padding-top: 1px; flex: none;
+  }
+
+  main { min-width: 0; padding: 44px clamp(20px, 4vw, 56px) 90px; }
+
+  header.doc-header { margin-bottom: 46px; }
+  .eyebrow {
+    display:inline-block; font-size: 11.5px; font-weight:700; letter-spacing:.08em;
+    text-transform: uppercase; color: var(--accent); background: var(--accent-soft);
+    padding: 4px 9px; border-radius: 5px; margin-bottom: 14px;
+  }
+  header.doc-header h1 { font-size: clamp(28px, 4vw, 38px); margin: 0 0 12px; }
+  header.doc-header .dek { color: var(--ink-soft); font-size: 16.5px; margin: 0 0 18px; max-width: 62ch; }
+  header.doc-header .meta {
+    display:flex; flex-wrap:wrap; gap: 8px 18px; font-size: 13px; color: var(--ink-faint);
+    border-top: 1px solid var(--line); padding-top: 14px;
+  }
+  header.doc-header .meta strong { color: var(--ink-soft); font-weight: 600; }
+
+  section { margin: 0 0 62px; scroll-margin-top: 20px; }
+  section > .eyebrow { margin-bottom: 10px; }
+  section h2 { font-size: 24px; margin: 0 0 6px; }
+  section .lede { color: var(--ink-soft); font-size: 15px; margin: 0 0 22px; }
+  section h3 { font-size: 16.5px; margin: 30px 0 10px; }
+  section p { color: var(--ink); font-size: 15.5px; }
+  section p + p { margin-top: 12px; }
+  ul.plain, ol.plain { padding-left: 22px; margin: 12px 0; }
+  ul.plain li, ol.plain li { margin: 6px 0; font-size: 15.5px; }
+  ul.plain li::marker { color: var(--ink-faint); }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 18px 20px; box-shadow: var(--shadow); margin: 18px 0;
+  }
+  .card.callout { border-left: 3px solid var(--accent); }
+  .card.callout .eyebrow { margin-bottom: 8px; }
+
+  figure.diagram {
+    margin: 22px 0; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 10px; padding: 20px 18px 14px; box-shadow: var(--shadow);
+  }
+  figure.diagram svg { display:block; width:100%; height:auto; color: var(--ink-soft); }
+  figure.diagram svg .accent-grp { color: var(--accent); }
+  figure.diagram svg text { fill: currentColor; font-family: ui-monospace, "SF Mono", Consolas, monospace; }
+  figure.diagram svg .lbl-strong { font-weight: 700; fill: var(--ink); }
+  figcaption {
+    font-size: 13px; color: var(--ink-faint); margin-top: 10px; padding-top: 10px;
+    border-top: 1px dashed var(--line);
+  }
+
+  .table-wrap { overflow-x: auto; margin: 18px 0; border: 1px solid var(--line); border-radius: 10px; }
+  table.spec { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 560px; }
+  table.spec caption { text-align:left; padding: 10px 14px; font-size: 12px; color: var(--ink-faint); border-bottom: 1px solid var(--line); }
+  table.spec th, table.spec td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  table.spec thead th { background: var(--surface-2); font-family: -apple-system, "Segoe UI", Roboto, sans-serif; font-weight:700; font-size: 12px; letter-spacing:.03em; text-transform:uppercase; color: var(--ink-soft); }
+  table.spec tbody tr:last-child td { border-bottom: none; }
+  table.spec td.k { color: var(--ink); font-weight:600; white-space: nowrap; }
+
+  .tag {
+    display:inline-flex; align-items:center; gap:5px; font-size: 11.5px; font-weight:600;
+    padding: 2px 8px; border-radius: 5px; background: var(--surface-2); color: var(--ink-soft);
+    border: 1px solid var(--line);
+  }
+  .tag.mode-inline { }
+  .tag.mode-agents { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+
+  details.glossary { border-top: 1px solid var(--line); padding: 12px 0; }
+  details.glossary:last-child { border-bottom: 1px solid var(--line); }
+  details.glossary summary { cursor: pointer; font-weight: 600; font-size: 15px; list-style: none; display:flex; justify-content:space-between; gap:10px; }
+  details.glossary summary::-webkit-details-marker { display:none; }
+  details.glossary summary::after { content:"+"; color: var(--ink-faint); font-weight:400; }
+  details.glossary[open] summary::after { content:"–"; }
+  details.glossary p { margin-top: 8px; font-size: 14px; color: var(--ink-soft); }
+
+  footer.doc-footer {
+    border-top: 1px solid var(--line); padding-top: 20px; margin-top: 60px;
+    font-size: 13px; color: var(--ink-faint); display:flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    nav.toc {
+      position: static; max-height: none; border-right: none; border-bottom: 1px solid var(--line);
+      padding: 16px 20px; overflow-x: auto;
+    }
+    nav.toc ol { flex-direction: row; }
+    nav.toc a { white-space: nowrap; }
+    main { padding: 30px 18px 70px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+
+<div class="layout">
+  <nav class="toc" aria-label="Mục lục">
+    <div class="kit"><span class="dot"></span><span>VIBECODE-KIT · KIẾN TRÚC</span></div>
+    <ol>
+      <li><a href="#overview">Tổng quan</a></li>
+      <li><a href="#contracts">Contracts — giao ước I/O</a></li>
+      <li><a href="#detection">Engine Detection</a></li>
+      <li><a href="#loop">Loop Engine</a></li>
+      <li><a href="#harness">Harness Engine</a></li>
+      <li><a href="#checkpoint">Checkpoint Engine</a></li>
+      <li><a href="#memory">Memory</a></li>
+      <li><a href="#eval-log">Evaluation Log</a></li>
+      <li><a href="#e2e">Luồng end-to-end</a></li>
+      <li><a href="#agents">5 Subagent</a></li>
+      <li><a href="#glossary">Thuật ngữ</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <header class="doc-header">
+      <span class="eyebrow">Tài liệu kỹ thuật</span>
+      <h1>vibecode-kit — Kiến trúc &amp; Cơ chế vận hành</h1>
+      <p class="dek">Cách một bộ Skill/Command cho Claude Code chia sẻ chung 4 "engine" — Loop, Harness, Checkpoint, Contracts — để nhiều quy trình khác nhau (viết feature, debug, maintain, đánh giá GTM…) không phải tự viết lại cơ chế điều phối subagent từ đầu.</p>
+      <div class="meta">
+        <span><strong>Phạm vi</strong> — <code>.claude/engines/</code>, <code>.claude/agents/</code>, skill <code>vibe-pipeline</code></span>
+        <span><strong>Cập nhật</strong> — 2026-08-11</span>
+        <span><strong>Nguồn</strong> — đọc trực tiếp code trong repo, không suy đoán</span>
+      </div>
+    </header>
+
+    <section id="overview">
+      <span class="eyebrow">§01</span>
+      <h2>Tổng quan</h2>
+      <p><strong>vibecode-kit</strong> là một bộ Skill/Command đặt trong <code>.claude/</code> để tự động hoá quy trình phát triển phần mềm trên Claude Code. Ý tưởng cốt lõi không phải "viết nhiều skill" mà là <strong>tách phần lặp lại ra thành engine dùng chung</strong>: bất kỳ skill nào cần "lặp qua nhiều việc nhỏ và retry khi fail" thì compose lên <strong>Loop</strong>; cần "quét song song rồi phản biện chéo" thì compose lên <strong>Harness</strong>; cần "resume được sau khi context bị reset" thì compose lên <strong>Checkpoint</strong>. Skill chỉ khai báo vài tham số cấu hình (tên agent, danh sách dimension, đường dẫn state file…) — không copy-paste lại protocol.</p>
+      <p>Một skill (như <code>vibe-pipeline</code>) đóng vai <strong>orchestrator</strong>: giữ hội thoại với người dùng, quyết định khi nào dừng hỏi (⛔ STOP), và dispatch phần việc nặng cho các <strong>subagent</strong> chuyên biệt (worker) qua Agent tool. Orchestrator không tự làm việc của worker và ngược lại — ranh giới này được giữ nghiêm để mỗi lần dispatch có thể audit độc lập.</p>
+      <figure class="diagram">
+        <svg viewBox="0 0 880 400" role="img" aria-label="Sơ đồ 3 lớp: Skills khai báo config ở trên, Engine layer ở giữa dispatch qua Contracts, Subagent worker ở dưới">
+          <defs>
+            <marker id="arrow1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+            </marker>
+          </defs>
+          <text x="20" y="26" font-size="11" letter-spacing="1" class="lbl-strong">SKILLS — khai báo config</text>
+          <g stroke="currentColor" fill="none">
+            <rect x="20" y="36" width="150" height="46" rx="7"/>
+            <rect x="185" y="36" width="150" height="46" rx="7"/>
+            <rect x="350" y="36" width="150" height="46" rx="7"/>
+            <rect x="515" y="36" width="150" height="46" rx="7" stroke-dasharray="3 3"/>
+          </g>
+          <g font-size="12" text-anchor="middle">
+            <text x="95" y="63">vibe-pipeline</text>
+            <text x="260" y="63">vibe-debugger</text>
+            <text x="425" y="63">vibe-maintain</text>
+            <text x="590" y="63" fill="currentColor" opacity=".7">… skill khác</text>
+          </g>
+
+          <g class="accent-grp">
+            <line x1="290" y1="82" x2="290" y2="118" stroke="currentColor" marker-end="url(#arrow1)"/>
+            <text x="305" y="104" font-size="11">config: WORK_UNIT/WORKER · DIMENSIONS/FINDER/VERIFIER · STATE_FILE</text>
+          </g>
+
+          <text x="20" y="150" font-size="11" letter-spacing="1" class="lbl-strong">ENGINE LAYER — .claude/engines/</text>
+          <g stroke="currentColor" fill="none">
+            <rect x="20" y="160" width="270" height="60" rx="7"/>
+            <rect x="305" y="160" width="270" height="60" rx="7"/>
+            <rect x="590" y="160" width="270" height="60" rx="7"/>
+          </g>
+          <g font-size="13" text-anchor="middle" font-weight="700">
+            <text x="155" y="185">Loop</text>
+            <text x="440" y="185">Harness</text>
+            <text x="725" y="185">Checkpoint</text>
+          </g>
+          <g font-size="11" text-anchor="middle" fill="currentColor" opacity=".75">
+            <text x="155" y="202">lặp + retry-cap</text>
+            <text x="440" y="202">fan-out + phản biện</text>
+            <text x="725" y="202">resume-từ-state</text>
+          </g>
+
+          <g class="accent-grp">
+            <line x1="440" y1="220" x2="440" y2="256" stroke="currentColor" marker-end="url(#arrow1)"/>
+            <text x="455" y="242" font-size="11">dispatch qua Agent tool</text>
+          </g>
+
+          <text x="20" y="288" font-size="11" letter-spacing="1" class="lbl-strong">SUBAGENTS — worker chuyên biệt</text>
+          <g stroke="currentColor" fill="none">
+            <rect x="20" y="298" width="160" height="46" rx="7"/>
+            <rect x="196" y="298" width="160" height="46" rx="7"/>
+            <rect x="372" y="298" width="160" height="46" rx="7"/>
+            <rect x="548" y="298" width="160" height="46" rx="7"/>
+            <rect x="724" y="298" width="136" height="46" rx="7"/>
+          </g>
+          <g font-size="11.5" text-anchor="middle">
+            <text x="100" y="325">vibe-planner</text>
+            <text x="276" y="325">vibe-executor</text>
+            <text x="452" y="325">vibe-qa-finder</text>
+            <text x="628" y="325">vibe-qa-verifier</text>
+            <text x="792" y="325">vibe-test-planner</text>
+          </g>
+
+          <rect x="20" y="366" width="840" height="26" rx="6" fill="none" stroke="currentColor" stroke-dasharray="2 3" class="accent-grp"/>
+          <text x="440" y="383" font-size="11.5" text-anchor="middle" class="accent-grp">CONTRACTS — giao ước Input/Output dùng chung cho mọi lần dispatch (§02)</text>
+        </svg>
+        <figcaption>Skill khai báo tham số cho engine (không sửa engine) → engine dispatch subagent qua Agent tool → mọi input/output giữa 2 lớp dưới đi qua 1 giao ước chung (Contracts).</figcaption>
+      </figure>
+    </section>
+
+    <section id="contracts">
+      <span class="eyebrow">§02</span>
+      <h2>Contracts — giao ước Orchestrator ↔ Subagent</h2>
+      <p class="lede"><code>.claude/engines/contracts.md</code> — nơi duy nhất định nghĩa "gửi gì, nhận lại gì" khi dispatch. Loop và Harness đều dựa trên contract này thay vì tự định nghĩa lại.</p>
+      <figure class="diagram">
+        <svg viewBox="0 0 820 190" role="img" aria-label="Orchestrator gửi Input Contract cho Worker, Worker trả về theo Output Contract cố định heading">
+          <defs>
+            <marker id="arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+            </marker>
+          </defs>
+          <g stroke="currentColor" fill="none">
+            <rect x="20" y="55" width="180" height="70" rx="8"/>
+            <rect x="620" y="55" width="180" height="70" rx="8"/>
+          </g>
+          <g font-size="13" text-anchor="middle" font-weight="700">
+            <text x="110" y="94">Orchestrator</text>
+            <text x="710" y="94">Worker (subagent)</text>
+          </g>
+          <line x1="200" y1="75" x2="616" y2="75" stroke="currentColor" marker-end="url(#arrow2)"/>
+          <text x="410" y="65" font-size="11" text-anchor="middle">Input: role · flow_type · paths · work_item · prior_context · constraints</text>
+
+          <g class="accent-grp">
+            <line x1="616" y1="108" x2="204" y2="108" stroke="currentColor" marker-end="url(#arrow2)"/>
+            <text x="410" y="135" font-size="11" text-anchor="middle" fill="currentColor">Output: heading cố định — # RESULT/# FINDINGS/# VERDICT + # OPEN QUESTIONS (hoặc # NOTES) + # ERROR LOG khi fail</text>
+          </g>
+          <text x="410" y="165" font-size="10.5" text-anchor="middle" opacity=".75">Không dùng JSON nghiêm ngặt — model tuân thủ markdown heading cấp 1 ổn định hơn.</text>
+        </svg>
+        <figcaption>1 lần dispatch = 1 Input Contract đi, 1 Output Contract về. Thiếu context ở chiều đi là lỗi của orchestrator, không phải worker.</figcaption>
+      </figure>
+      <h3>Input Contract — orchestrator phải gửi kèm</h3>
+      <div class="table-wrap">
+        <table class="spec">
+          <thead><tr><th>Trường</th><th>Bắt buộc</th><th>Ý nghĩa</th></tr></thead>
+          <tbody>
+            <tr><td class="k">role</td><td>✓</td><td>Xác nhận worker đang đóng vai gì (planner/executor/finder…) — câu đầu prompt</td></tr>
+            <tr><td class="k">flow_type</td><td>khi liên quan</td><td><code>CREATE</code> | <code>UPDATE</code></td></tr>
+            <tr><td class="k">paths</td><td>✓</td><td>File worker phải đọc trước khi làm — orchestrator trích sẵn đường dẫn, không bắt worker tự đoán</td></tr>
+            <tr><td class="k">work_item</td><td>khi có</td><td>Đơn vị việc cụ thể (1 TASK, 1 finding, 1 dimension) — nội dung đầy đủ, không chỉ id</td></tr>
+            <tr><td class="k">prior_context</td><td>khi retry</td><td>Error log nguyên văn + "giả thuyết cho lần sau" của lần trước + đã thử gì</td></tr>
+            <tr><td class="k">constraints</td><td>khi có</td><td>Ràng buộc đặc thù (scope containment, no-breaking, convention bắt buộc)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>Output Contract — worker phải trả</h3>
+      <p>Mỗi loại worker khai heading riêng (planner → <code>#&nbsp;MODE&nbsp;PROPOSAL</code>/<code>#&nbsp;PLAN&nbsp;CONTENT</code>; executor → <code>#&nbsp;RESULT</code>/<code>#&nbsp;TESTS</code>/<code>#&nbsp;FILES&nbsp;CHANGED</code>; finder → <code>#&nbsp;FINDINGS</code>; verifier → <code>#&nbsp;VERDICT</code>), nhưng mọi worker đều kết thúc bằng <code>#&nbsp;OPEN&nbsp;QUESTIONS</code> (hoặc <code>#&nbsp;NOTES</code> với executor) — ghi <code>none</code> nếu không có gì cần hỏi.</p>
+      <div class="card callout">
+        <span class="eyebrow">Cơ chế Reflection</span>
+        <p style="margin:0"><code># ERROR LOG</code> (dùng khi fail) bắt buộc đủ 3 phần — lỗi nguyên văn, phân tích nguyên nhân, đã thử gì — <strong>cộng thêm "Giả thuyết cho lần sau"</strong>: worker tự áp 2-3 câu hỏi refute-first (đây có phải root cause thật hay chỉ triệu chứng? có convention nào ở <code>paths</code> đã đọc mà bỏ sót? fix có đúng layer?) trước khi dừng. Đây <strong>không phải</strong> worker tự retry — worker vẫn dừng ngay sau 1 lần thử — chỉ làm giàu nội dung để <code>prior_context</code> ở lần dispatch kế có chất lượng hơn.</p>
+      </div>
+    </section>
+
+    <section id="detection">
+      <span class="eyebrow">§03</span>
+      <h2>Engine Detection — chọn chế độ vận hành</h2>
+      <p class="lede">Chạy 1 lần đầu mỗi phiên, trước bất kỳ bước nào khác. Kết quả ghi vào state file và <strong>luôn re-detect khi resume</strong> (không tin giá trị cũ — máy khác/phiên khác có thể thiếu agent hoặc Workflow tool).</p>
+      <div class="table-wrap">
+        <table class="spec">
+          <thead><tr><th>engine_mode</th><th>Điều kiện</th><th>Hành vi</th></tr></thead>
+          <tbody>
+            <tr><td class="k"><span class="tag mode-agents">agents+harness</span></td><td>Có agent <code>vibe-*</code> <strong>và</strong> Workflow tool</td><td>Dispatch subagent cho từng bước + Quality Gate chạy fan-out/verify qua Workflow</td></tr>
+            <tr><td class="k"><span class="tag mode-agents">agents</span></td><td>Có agent <code>vibe-*</code>, không có Workflow</td><td>Dispatch subagent tuần tự (không fan-out song song thật, verify tuần tự)</td></tr>
+            <tr><td class="k"><span class="tag mode-inline">inline</span></td><td>Không có agent definitions hoặc không có Agent/Task tool</td><td>Context chính tự làm mọi việc theo sub-prompt (hành vi v1 nguyên bản) — vẫn hỗ trợ đầy đủ, chỉ mất ranh giới context riêng của subagent</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Thiếu <em>một vài</em> agent definition (cài dở) không chặn cả pipeline — bước tương ứng dùng agent <code>general-purpose</code> thay thế hoặc chạy inline, ghi chú vào state.</p>
+    </section>
+
+    <section id="loop">
+      <span class="eyebrow">§04</span>
+      <h2>Loop Engine — lặp tuần tự, retry có trần</h2>
+      <p class="lede">Dùng khi 1 skill cần xử lý <strong>nhiều đơn vị việc độc lập theo thứ tự</strong> — ví dụ mỗi TASK trong <code>IMPLEMENTATION_PLAN.md</code>. Orchestrator điều khiển vòng lặp; worker <strong>không</strong> tự lặp.</p>
+      <figure class="diagram">
+        <svg viewBox="0 0 760 360" role="img" aria-label="Loop engine: dispatch worker cho 1 work unit, kiểm tra kết quả pass/fail/blocked, retry tối đa CAP lần trước khi escalate">
+          <defs>
+            <marker id="arrow3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+            </marker>
+          </defs>
+          <g stroke="currentColor" fill="none">
+            <rect x="270" y="16" width="220" height="46" rx="8"/>
+            <rect x="270" y="120" width="220" height="46" rx="8"/>
+            <polygon points="380,196 470,236 380,276 290,236"/>
+            <rect x="30" y="310" width="200" height="40" rx="8"/>
+            <rect x="560" y="196" width="180" height="40" rx="8"/>
+            <rect x="270" y="310" width="220" height="40" rx="8"/>
+          </g>
+          <g font-size="12.5" text-anchor="middle">
+            <text x="380" y="43">units = WORK_UNIT[] theo dependency</text>
+            <text x="380" y="147" font-weight="700">dispatch WORKER(unit)</text>
+            <text x="380" y="240" font-size="11.5">kết quả?</text>
+            <text x="130" y="334">pass → unit tiếp theo</text>
+            <text x="650" y="220" font-size="12">blocked</text>
+            <text x="380" y="333">⛔ STOP — ghi Blockers</text>
+          </g>
+          <line x1="380" y1="62" x2="380" y2="116" stroke="currentColor" marker-end="url(#arrow3)"/>
+          <line x1="380" y1="166" x2="380" y2="192" stroke="currentColor" marker-end="url(#arrow3)"/>
+          <line x1="290" y1="236" x2="130" y2="308" stroke="currentColor" marker-end="url(#arrow3)"/>
+          <text x="175" y="280" font-size="11">pass</text>
+          <line x1="470" y1="220" x2="556" y2="212" stroke="currentColor" marker-end="url(#arrow3)"/>
+          <line x1="650" y1="236" x2="400" y2="308" stroke="currentColor" marker-end="url(#arrow3)"/>
+
+          <g class="accent-grp">
+            <line x1="380" y1="276" x2="380" y2="308" stroke="currentColor" marker-end="url(#arrow3)"/>
+            <text x="440" y="296" font-size="11">fail</text>
+            <path d="M 270 245 C 120 245, 90 170, 268 143" fill="none" stroke="currentColor" stroke-dasharray="4 3" marker-end="url(#arrow3)"/>
+            <text x="30" y="200" font-size="11">iteration ≤ CAP(3) →</text>
+            <text x="30" y="213" font-size="11">retry kèm prior_context</text>
+          </g>
+        </svg>
+        <figcaption>Mỗi lần fail: iteration+1, dispatch lại kèm <code>prior_context</code> (error log + giả thuyết lần trước) — chạm <code>CAP</code> (mặc định 3) hoặc gặp <code>blocked</code> → ⛔ STOP hỏi human, không dispatch thêm.</figcaption>
+      </figure>
+      <div class="table-wrap">
+        <table class="spec">
+          <caption>Ví dụ config thật — vibe-pipeline Bước 4 (Execute)</caption>
+          <tbody>
+            <tr><td class="k">WORK_UNIT</td><td>1 TASK trong <code>IMPLEMENTATION_PLAN.md</code></td></tr>
+            <tr><td class="k">WORKER</td><td><code>vibe-executor</code></td></tr>
+            <tr><td class="k">SUCCESS_CHECK</td><td>test liên quan green + regression clean</td></tr>
+            <tr><td class="k">CAP</td><td>3 (mặc định)</td></tr>
+            <tr><td class="k">ESCALATION</td><td>ghi <code>Blockers</code> vào state + ⛔ STOP hỏi human</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Bất biến quan trọng: <strong>orchestrator không tự sửa file trong lúc loop</strong> — mọi thay đổi đi qua worker, giữ audit trail "1 dispatch = 1 unit = 1 commit". <code>CAP</code> là hard cap, không nới trừ khi human yêu cầu rõ.</p>
+    </section>
+
+    <section id="harness">
+      <span class="eyebrow">§05</span>
+      <h2>Harness Engine — fan-out, phản biện, tổng hợp</h2>
+      <p class="lede">Dùng khi cần quét <strong>nhiều chiều song song</strong> rồi verify chéo — ví dụ Quality Gate quét 4 dimension (security / performance / code-review / test-coverage) cùng lúc.</p>
+      <figure class="diagram">
+        <svg viewBox="0 0 860 300" role="img" aria-label="4 finder chạy song song theo dimension, triage theo severity, verifier phản biện, synthesizer tổng hợp confirmed/refuted/unverified">
+          <defs>
+            <marker id="arrow4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+            </marker>
+          </defs>
+          <g stroke="currentColor" fill="none">
+            <rect x="10" y="10" width="150" height="42" rx="7"/>
+            <rect x="10" y="60" width="150" height="42" rx="7"/>
+            <rect x="10" y="110" width="150" height="42" rx="7"/>
+            <rect x="10" y="160" width="150" height="42" rx="7"/>
+          </g>
+          <g font-size="11.5" text-anchor="middle">
+            <text x="85" y="35">FINDER · security</text>
+            <text x="85" y="85">FINDER · performance</text>
+            <text x="85" y="135">FINDER · code-review</text>
+            <text x="85" y="185">FINDER · test-coverage</text>
+          </g>
+          <g stroke="currentColor" fill="none">
+            <rect x="230" y="80" width="150" height="60" rx="8"/>
+          </g>
+          <text x="305" y="106" font-size="12" text-anchor="middle" font-weight="700">TRIAGE</text>
+          <text x="305" y="122" font-size="10.5" text-anchor="middle">theo severity</text>
+          <g stroke="currentColor" fill="none" marker-end="url(#arrow4)">
+            <line x1="160" y1="31" x2="228" y2="95"/>
+            <line x1="160" y1="81" x2="228" y2="100"/>
+            <line x1="160" y1="131" x2="228" y2="120"/>
+            <line x1="160" y1="181" x2="228" y2="130"/>
+          </g>
+
+          <g stroke="currentColor" fill="none">
+            <rect x="450" y="10" width="190" height="42" rx="7"/>
+            <rect x="450" y="65" width="190" height="42" rx="7"/>
+            <rect x="450" y="120" width="190" height="42" rx="7" stroke-dasharray="3 3"/>
+          </g>
+          <g font-size="11" text-anchor="middle">
+            <text x="545" y="30" font-weight="700">critical/high</text>
+            <text x="545" y="45">verify riêng — 1/dispatch</text>
+            <text x="545" y="85" font-weight="700">medium</text>
+            <text x="545" y="100">batch verify ≤5/dispatch</text>
+            <text x="545" y="140" font-weight="700">low</text>
+            <text x="545" y="155">skip → unverified-low</text>
+          </g>
+          <g stroke="currentColor" fill="none" marker-end="url(#arrow4)">
+            <line x1="380" y1="95" x2="448" y2="32"/>
+            <line x1="380" y1="103" x2="448" y2="86"/>
+            <line x1="380" y1="118" x2="448" y2="140"/>
+          </g>
+
+          <g stroke="currentColor" fill="none">
+            <rect x="690" y="40" width="150" height="42" rx="7"/>
+          </g>
+          <text x="765" y="65" font-size="11.5" text-anchor="middle" font-weight="700">VERIFIER</text>
+          <text x="765" y="26" font-size="10" text-anchor="middle">refute-first</text>
+          <g stroke="currentColor" fill="none" marker-end="url(#arrow4)">
+            <line x1="640" y1="31" x2="688" y2="55"/>
+            <line x1="640" y1="86" x2="688" y2="65"/>
+          </g>
+
+          <g class="accent-grp">
+            <rect x="450" y="220" width="390" height="50" rx="8" fill="none" stroke="currentColor"/>
+            <text x="645" y="240" font-size="12" text-anchor="middle" font-weight="700">SYNTHESIZER</text>
+            <text x="645" y="257" font-size="10.5" text-anchor="middle">confirmed / refuted / unverified → .claude/quality-log.jsonl</text>
+            <line x1="765" y1="82" x2="700" y2="218" stroke="currentColor" marker-end="url(#arrow4)"/>
+            <line x1="545" y1="140" x2="600" y2="218" stroke="currentColor" marker-end="url(#arrow4)"/>
+          </g>
+        </svg>
+        <figcaption>VERIFY_POLICY triage theo severity để tiết kiệm token: critical/high verify riêng, medium gộp batch, low bỏ qua (không phải không quan tâm — ghi rõ <code>unverified-low</code>).</figcaption>
+      </figure>
+      <div class="card callout">
+        <span class="eyebrow">OPT_IN bắt buộc</span>
+        <p style="margin:0">Harness spawn nhiều agent → tốn token → phải hỏi user rõ ràng trước khi chạy, kèm ước lượng số agent theo kích thước diff (nhỏ ~2-5 agent, vừa ~5-9, lớn tối đa ~11-12 với trần <code>MAX_VERIFIERS=8</code>). Trả lời mơ hồ hoặc từ chối → chạy fallback tuần tự, không invoke Workflow.</p>
+      </div>
+    </section>
+
+    <section id="checkpoint">
+      <span class="eyebrow">§06</span>
+      <h2>Checkpoint Engine — resume qua nhiều phiên</h2>
+      <p class="lede">1 state file là nguồn sự thật duy nhất. Chuẩn hoá <strong>quy trình</strong> (khi nào đọc/ghi, thứ tự tóm tắt + xác nhận) — không ép mọi skill dùng chung 1 schema state file.</p>
+      <ol class="plain">
+        <li><strong>Pre-flight</strong> — state file tồn tại? Không → tạo mới. Có → đọc toàn bộ <em>trước</em> khi làm bất kỳ việc gì khác của bước đầu phiên.</li>
+        <li><strong>Tóm tắt</strong> — 1 dòng trạng thái ("Chúng ta đang ở [X], đã hoàn thành [Y]").</li>
+        <li><strong>Xác nhận</strong> — hỏi "tiếp tục từ đó hay bắt đầu lại?", chờ trả lời rõ ràng.</li>
+        <li><strong>Nếu tiếp tục &amp; skill có dispatch subagent</strong> — re-run Engine Detection, không tin <code>engine_mode</code> đã cache.</li>
+      </ol>
+      <div class="table-wrap">
+        <table class="spec">
+          <thead><tr><th></th><th>vibe-pipeline</th><th>vibe-debugger</th></tr></thead>
+          <tbody>
+            <tr><td class="k">STATE_FILE</td><td><code>specs/PIPELINE_STATE.md</code></td><td><code>specs/BUG_REPORT.md</code></td></tr>
+            <tr><td class="k">STATE_TEMPLATE</td><td><code>PIPELINE_STATE_TEMPLATE.md</code></td><td>none — field <code>## Status</code> khai trực tiếp</td></tr>
+            <tr><td class="k">WRITE_EVENTS</td><td>step done · user adjustment · key decision · blocker</td><td>root cause found · fix approved · fix attempt result · resolved</td></tr>
+            <tr><td class="k">STALE_ON_RESUME</td><td><code>engine_mode</code></td><td>n/a — không dispatch subagent</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="memory">
+      <span class="eyebrow">§07</span>
+      <h2>Memory — 2 tầng thật</h2>
+      <p class="lede">Kit chỉ triển khai 2/4 tầng "Memory đa tầng" có ý nghĩa thật cho bối cảnh local, single-user của nó.</p>
+      <div class="table-wrap">
+        <table class="spec">
+          <thead><tr><th>Tầng</th><th>Thực tế</th></tr></thead>
+          <tbody>
+            <tr><td class="k">Session</td><td>= state file của Checkpoint (<code>specs/PIPELINE_STATE.md</code>) — không cần gì thêm</td></tr>
+            <tr><td class="k">User</td><td>Out of scope có chủ đích — kit không có khái niệm định danh người dùng</td></tr>
+            <tr><td class="k">Project</td><td><code>specs/PROJECT_MEMORY.md</code> — bản chưng cất (Architecture Decisions / Conventions &amp; Gotchas / Open Risks), orchestrator upsert lúc <code>current_step = completed</code></td></tr>
+            <tr><td class="k">Experience</td><td><code>.claude/memory-log.jsonl</code> — lịch sử thô append-only, kéo từ Key Decisions Log + Issues Encountered đã có sẵn trong state file</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><strong>Quy tắc đọc — chỉ planner đọc</strong>: nếu <code>PROJECT_MEMORY.md</code> tồn tại, orchestrator thêm vào <code>paths</code> khi dispatch <strong>planner</strong> ở đầu 1 pipeline mới. Không đưa vào context của executor mỗi task, để tránh nhiễu.</p>
+    </section>
+
+    <section id="eval-log">
+      <span class="eyebrow">§08</span>
+      <h2>Evaluation Log — đo lường xuyên-run</h2>
+      <p class="lede"><code>.claude/quality-log.jsonl</code> ghi bởi Harness's SYNTHESIZER sau mỗi Quality Gate/skill-review — không bị cuốn theo khi pipeline archive, khác bảng findings trong state file (chỉ là snapshot 1 lần chạy).</p>
+      <div class="table-wrap">
+        <table class="spec">
+          <thead><tr><th>Field</th><th>Ý nghĩa</th></tr></thead>
+          <tbody>
+            <tr><td class="k">confirmed / refuted / unverified</td><td>Số finding theo severity, sau khi verifier phản biện</td></tr>
+            <tr><td class="k">agents_spawned</td><td>Tổng finder + verify job đã dispatch — theo dõi xu hướng chi phí</td></tr>
+            <tr><td class="k">dimensions_run</td><td>Dimension không bị loại ở bước triage</td></tr>
+            <tr><td class="k">verifiers_skipped_low</td><td>Số finding severity low không verify</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><code>scripts/quality_trend.py --log .claude/quality-log.jsonl</code> đọc file này, so sánh theo <code>pipeline_id</code>/<code>item_key</code> qua các lần chạy, báo <strong>regression</strong> khi điểm giảm, grade tụt, hoặc confirmed critical/high tăng.</p>
+    </section>
+
+    <section id="e2e">
+      <span class="eyebrow">§09</span>
+      <h2>Luồng end-to-end — <code>/vibe-pipeline</code> từ ý tưởng tới code</h2>
+      <figure class="diagram">
+        <svg viewBox="0 0 900 210" role="img" aria-label="Chuỗi bước 0 Validate đến 4 Execute qua Loop, Quality Gate qua Harness, kết thúc ghi Memory, có 1 điểm STOP bắt buộc trước Execute">
+          <defs>
+            <marker id="arrow5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+            </marker>
+          </defs>
+          <g stroke="currentColor" fill="none" font-size="10.5">
+            <rect x="0" y="70" width="80" height="40" rx="6"/><text x="40" y="94" text-anchor="middle" fill="currentColor" stroke="none">0 · Validate</text>
+            <rect x="96" y="70" width="80" height="40" rx="6"/><text x="136" y="94" text-anchor="middle" fill="currentColor" stroke="none">1 · Idea</text>
+            <rect x="192" y="70" width="86" height="40" rx="6" stroke-dasharray="3 3"/><text x="235" y="88" text-anchor="middle" fill="currentColor" stroke="none">1.5 · Research</text><text x="235" y="100" text-anchor="middle" fill="currentColor" stroke="none" font-size="9">(tuỳ chọn)</text>
+            <rect x="294" y="70" width="80" height="40" rx="6"/><text x="334" y="94" text-anchor="middle" fill="currentColor" stroke="none">2 · Specs</text>
+            <rect x="390" y="70" width="80" height="40" rx="6"/><text x="430" y="94" text-anchor="middle" fill="currentColor" stroke="none">3 · Tasks</text>
+            <rect x="486" y="70" width="86" height="40" rx="6"/><text x="529" y="94" text-anchor="middle" fill="currentColor" stroke="none">3.5 · Test Plan</text>
+          </g>
+          <g stroke="currentColor" fill="none" marker-end="url(#arrow5)">
+            <line x1="80" y1="90" x2="94" y2="90"/><line x1="176" y1="90" x2="190" y2="90"/><line x1="278" y1="90" x2="292" y2="90"/>
+            <line x1="374" y1="90" x2="388" y2="90"/><line x1="470" y1="90" x2="484" y2="90"/>
+          </g>
+
+          <g class="accent-grp">
+            <polygon points="614,60 654,75 654,105 614,120 594,105 594,75" fill="none" stroke="currentColor"/>
+            <text x="624" y="86" font-size="9.5" text-anchor="middle">⛔ STOP</text>
+            <text x="624" y="98" font-size="9" text-anchor="middle">human</text>
+            <text x="624" y="110" font-size="9" text-anchor="middle">review</text>
+            <line x1="572" y1="90" x2="592" y2="90" marker-end="url(#arrow5)"/>
+          </g>
+
+          <g stroke="currentColor" fill="none" font-size="10.5">
+            <rect x="686" y="45" width="100" height="42" rx="6"/><text x="736" y="63" text-anchor="middle" fill="currentColor" stroke="none" font-weight="700">4 · Execute</text><text x="736" y="76" text-anchor="middle" fill="currentColor" stroke="none" font-size="9">(Loop, §04)</text>
+            <rect x="686" y="123" width="100" height="42" rx="6"/><text x="736" y="141" text-anchor="middle" fill="currentColor" stroke="none" font-weight="700">Quality Gate</text><text x="736" y="154" text-anchor="middle" fill="currentColor" stroke="none" font-size="9">(Harness, §05)</text>
+          </g>
+          <line x1="656" y1="82" x2="684" y2="66" stroke="currentColor" marker-end="url(#arrow5)"/>
+          <line x1="736" y1="87" x2="736" y2="121" stroke="currentColor" marker-end="url(#arrow5)"/>
+
+          <g class="accent-grp">
+            <rect x="806" y="84" width="92" height="42" rx="6" fill="none" stroke="currentColor"/>
+            <text x="852" y="102" font-size="10" text-anchor="middle">Memory</text>
+            <text x="852" y="115" font-size="9" text-anchor="middle">write (§07)</text>
+            <line x1="786" y1="144" x2="804" y2="105" stroke="currentColor" marker-end="url(#arrow5)"/>
+          </g>
+        </svg>
+        <figcaption>UPDATE flow đổi tên vài bước (0-Assess, 2-Specs→REFACTOR.md) nhưng cùng khung: luôn có 1 ⛔ STOP bắt buộc trước Execute, Test Plan (3.5) không được skip.</figcaption>
+      </figure>
+    </section>
+
+    <section id="agents">
+      <span class="eyebrow">§10</span>
+      <h2>5 Subagent chuyên biệt</h2>
+      <div class="table-wrap">
+        <table class="spec">
+          <thead><tr><th>Agent</th><th>Vai trò</th><th>Tools</th></tr></thead>
+          <tbody>
+            <tr><td class="k">vibe-planner</td><td>Tech Lead — lập task breakdown từ PRD/REFACTOR. Chỉ lập kế hoạch, không viết code.</td><td>Read, Glob, Grep, Bash</td></tr>
+            <tr><td class="k">vibe-test-planner</td><td>QA Lead — lập test plan từ IMPLEMENTATION_PLAN. Không viết code.</td><td>Read, Glob, Grep, Bash</td></tr>
+            <tr><td class="k">vibe-executor</td><td>Senior Engineer — thực thi đúng 1 TASK theo TDD, mỗi task 1 dispatch. Có quyền sửa code &amp; commit.</td><td>Read, Write, Edit, Bash, Glob, Grep</td></tr>
+            <tr><td class="k">vibe-qa-finder</td><td>Quét 1 dimension (security/performance/code-review/test-coverage) theo checklist, trả findings. Chỉ báo cáo.</td><td>Read, Glob, Grep, Bash</td></tr>
+            <tr><td class="k">vibe-qa-verifier</td><td>Nhận 1 finding, cố bác bỏ (refute-first). Chỉ finding sống sót mới vào báo cáo cuối. Chỉ đọc.</td><td>Read, Glob, Grep, Bash</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="glossary">
+      <span class="eyebrow">§11</span>
+      <h2>Thuật ngữ nhanh</h2>
+      <details class="glossary">
+        <summary>WORK_UNIT / WORKER</summary>
+        <p>Tham số của Loop engine — 1 đơn vị việc (VD: 1 TASK) và agent nào được dispatch để xử lý nó.</p>
+      </details>
+      <details class="glossary">
+        <summary>DIMENSIONS / FINDER / VERIFIER / SYNTHESIZER</summary>
+        <p>Tham số của Harness engine — danh sách chiều quét, agent quét 1 chiều, agent phản biện 1 finding, và cách dedupe + tổng hợp báo cáo cuối.</p>
+      </details>
+      <details class="glossary">
+        <summary>VERIFY_POLICY</summary>
+        <p>Quy tắc triage của Harness theo severity — critical/high verify riêng, medium batch ≤5, low bỏ qua — cộng trần <code>MAX_VERIFIERS</code> để chặn chi phí không kiểm soát.</p>
+      </details>
+      <details class="glossary">
+        <summary>STATE_FILE / STALE_ON_RESUME</summary>
+        <p>Tham số của Checkpoint engine — file lưu trạng thái duy nhất, và danh sách field phụ thuộc môi trường phải re-detect (không tin cache) khi resume.</p>
+      </details>
+      <details class="glossary">
+        <summary>engine_mode</summary>
+        <p><code>inline</code> (tự thực thi, không dispatch) · <code>agents</code> (dispatch tuần tự) · <code>agents+harness</code> (dispatch + fan-out qua Workflow tool) — auto-detect đầu phiên, luôn re-detect khi resume.</p>
+      </details>
+      <details class="glossary">
+        <summary>⛔ STOP</summary>
+        <p>Điểm dừng bắt buộc ở context chính (không bao giờ ở subagent) — chờ xác nhận rõ ràng của người dùng trước khi tiếp tục, không tự đoán.</p>
+      </details>
+    </section>
+
+    <footer class="doc-footer">
+      <span>vibecode-kit — tài liệu kỹ thuật, biên soạn 2026-08-11</span>
+      <span>Xem thêm: tài liệu đánh giá tiến độ &amp; mức độ trưởng thành (bản đi kèm)</span>
+    </footer>
+  </main>
+</div>
+
+</body></html>

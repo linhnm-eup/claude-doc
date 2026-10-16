@@ -1,0 +1,254 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Mệnh An — ba hướng thiết kế</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Brygada+1918:wght@500;700&family=Newsreader:opsz,wght@6..72,500;6..72,700&display=swap">
+<style>
+/* Layout: trang so sánh — phần đầu ngắn, rồi 3 cột "màn điện thoại" mẫu (xếp dọc trên điện thoại), mỗi cột một hướng. */
+:root {
+  /* Khung trang (trung tính, không thuộc hướng nào) */
+  --page-bg: #f2f2f0; --page-fg: #1a1a1a; --page-muted: #5a5a58; --page-line: #d9d9d4; --page-card: #ffffff;
+  /* Thang chấm ngày — dùng chung cho cả 3 hướng, tách khỏi màu thương hiệu */
+  --tot: #2e6b2f; --kha: #36577f; --trung: #5c5c5c; --xau: #a1302a;
+  --tot-bg: #e7f1e6; --kha-bg: #e6edf6; --trung-bg: #ededeb; --xau-bg: #f7e6e4;
+  /* A — Sơn mài */
+  --a-bg: #faf8f4; --a-surface: #ffffff; --a-fg: #1c1612; --a-muted: #6b5f55; --a-line: #e8e1d6; --a-brand: #7d5a14; --a-onbrand: #ffffff; --a-mark: #a32a1c; --a-soft: #f3ead6;
+  /* B — Chàm */
+  --b-bg: #f6f6f3; --b-surface: #ffffff; --b-fg: #151b2b; --b-muted: #596074; --b-line: #e1e3ea; --b-brand: #26407a; --b-onbrand: #ffffff; --b-mark: #b03a2e; --b-soft: #e8edf8;
+  /* C — Ngọc */
+  --c-bg: #f5f7f6; --c-surface: #ffffff; --c-fg: #111a18; --c-muted: #56635f; --c-line: #dde5e2; --c-brand: #0e6158; --c-onbrand: #ffffff; --c-mark: #0e6158; --c-soft: #e2f0ed;
+  --font-ui: "Be Vietnam Pro", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page-bg: #111111; --page-fg: #ededeb; --page-muted: #a8a8a4; --page-line: #2c2c2a; --page-card: #1a1a19;
+    --tot: #8fd18f; --kha: #9cbbe4; --trung: #b8b8b8; --xau: #f19a92;
+    --tot-bg: #1c2b1c; --kha-bg: #1b2433; --trung-bg: #262626; --xau-bg: #331d1b;
+    --a-bg: #120e0b; --a-surface: #1e1814; --a-fg: #f3ece2; --a-muted: #b3a596; --a-line: #3a302a; --a-brand: #d9b562; --a-onbrand: #1c1612; --a-mark: #e0715f; --a-soft: #2b2218;
+    --b-bg: #0c1120; --b-surface: #151c30; --b-fg: #e9ecf4; --b-muted: #a2abc2; --b-line: #263052; --b-brand: #a9bdf0; --b-onbrand: #0c1120; --b-mark: #e8c77a; --b-soft: #1b2542;
+    --c-bg: #0b1312; --c-surface: #14201e; --c-fg: #e6efec; --c-muted: #9fb2ad; --c-line: #24332f; --c-brand: #6fd0bf; --c-onbrand: #0b1312; --c-mark: #6fd0bf; --c-soft: #17302b;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page-bg: #111111; --page-fg: #ededeb; --page-muted: #a8a8a4; --page-line: #2c2c2a; --page-card: #1a1a19;
+  --tot: #8fd18f; --kha: #9cbbe4; --trung: #b8b8b8; --xau: #f19a92;
+  --tot-bg: #1c2b1c; --kha-bg: #1b2433; --trung-bg: #262626; --xau-bg: #331d1b;
+  --a-bg: #120e0b; --a-surface: #1e1814; --a-fg: #f3ece2; --a-muted: #b3a596; --a-line: #3a302a; --a-brand: #d9b562; --a-onbrand: #1c1612; --a-mark: #e0715f; --a-soft: #2b2218;
+  --b-bg: #0c1120; --b-surface: #151c30; --b-fg: #e9ecf4; --b-muted: #a2abc2; --b-line: #263052; --b-brand: #a9bdf0; --b-onbrand: #0c1120; --b-mark: #e8c77a; --b-soft: #1b2542;
+  --c-bg: #0b1312; --c-surface: #14201e; --c-fg: #e6efec; --c-muted: #9fb2ad; --c-line: #24332f; --c-brand: #6fd0bf; --c-onbrand: #0b1312; --c-mark: #6fd0bf; --c-soft: #17302b;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page-bg); color: var(--page-fg); font-family: var(--font-ui); font-size: 15px; line-height: 1.55; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-inline: 16px; padding-block: 28px 56px; }
+header.intro { max-width: 68ch; display: grid; gap: 10px; }
+h1 { font-size: 1.6rem; line-height: 1.25; margin: 0; text-wrap: balance; }
+.intro p { margin: 0; color: var(--page-muted); }
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-block: 20px 8px; }
+.toolbar span { font-size: 0.8rem; color: var(--page-muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.seg { display: inline-flex; border: 1px solid var(--page-line); border-radius: 999px; overflow: hidden; background: var(--page-card); }
+.seg button { font: inherit; font-size: 0.85rem; border: 0; background: transparent; color: var(--page-fg); padding: 8px 14px; min-height: 40px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--page-fg); color: var(--page-bg); }
+.seg button:focus-visible, .mock button:focus-visible { outline: 2px solid var(--page-fg); outline-offset: 2px; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 28px; margin-top: 18px; align-items: start; }
+.col { display: grid; gap: 14px; min-width: 0; }
+.col h2 { margin: 0; font-size: 1.15rem; }
+.col .sub { margin: 0; color: var(--page-muted); font-size: 0.9rem; }
+.why { margin: 0; padding-left: 1.1em; color: var(--page-fg); font-size: 0.88rem; display: grid; gap: 4px; }
+.swatches { display: flex; flex-wrap: wrap; gap: 6px; }
+.sw { display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--page-muted); }
+.sw i { width: 18px; height: 18px; border-radius: 4px; border: 1px solid var(--page-line); display: inline-block; }
+
+/* "Màn điện thoại" — mỗi hướng ánh xạ token của nó vào bộ tên chung */
+.mock { --bg: var(--a-bg); border: 1px solid var(--page-line); border-radius: 28px; overflow: hidden; background: var(--bg); color: var(--fg); max-width: 390px; width: 100%; display: grid; gap: 12px; padding: 18px 14px 20px; }
+.mock[data-dir="a"] { --bg: var(--a-bg); --surface: var(--a-surface); --fg: var(--a-fg); --muted: var(--a-muted); --line: var(--a-line); --brand: var(--a-brand); --onbrand: var(--a-onbrand); --mark: var(--a-mark); --soft: var(--a-soft); --display: "Brygada 1918", Georgia, serif; --radius: 10px; }
+.mock[data-dir="b"] { --bg: var(--b-bg); --surface: var(--b-surface); --fg: var(--b-fg); --muted: var(--b-muted); --line: var(--b-line); --brand: var(--b-brand); --onbrand: var(--b-onbrand); --mark: var(--b-mark); --soft: var(--b-soft); --display: "Newsreader", Georgia, serif; --radius: 6px; }
+.mock[data-dir="c"] { --bg: var(--c-bg); --surface: var(--c-surface); --fg: var(--c-fg); --muted: var(--c-muted); --line: var(--c-line); --brand: var(--c-brand); --onbrand: var(--c-onbrand); --mark: var(--c-mark); --soft: var(--c-soft); --display: "Be Vietnam Pro", system-ui, sans-serif; --radius: 16px; }
+
+.m-top { display: flex; justify-content: space-between; align-items: baseline; }
+.m-greet { font-family: var(--display); font-size: 1.45rem; font-weight: 700; line-height: 1.2; }
+.mock[data-dir="c"] .m-greet { font-size: 1.3rem; letter-spacing: -0.01em; }
+.m-date { font-size: 0.8rem; color: var(--muted); }
+.seal { width: 30px; height: 30px; border: 2px solid var(--mark); color: var(--mark); border-radius: 4px; display: grid; place-items: center; font-family: var(--display); font-weight: 700; font-size: 0.95rem; transform: rotate(-4deg); }
+.mock[data-dir="c"] .seal { border-radius: 50%; transform: none; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; display: grid; gap: 8px; }
+.eyebrow { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+.verdict { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.verdict b { font-family: var(--display); font-size: 1.15rem; }
+.badge { font-size: 0.75rem; font-weight: 600; padding: 3px 9px; border-radius: 999px; }
+.badge.tot { background: var(--tot-bg); color: var(--tot); }
+.badge.kha { background: var(--kha-bg); color: var(--kha); }
+.badge.trung { background: var(--trung-bg); color: var(--trung); }
+.badge.xau { background: var(--xau-bg); color: var(--xau); }
+.advice { font-size: 0.92rem; }
+.hours { font-size: 0.82rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.day { border-radius: calc(var(--radius) / 2 + 2px); padding: 6px 0 5px; text-align: center; font-variant-numeric: tabular-nums; border: 1px solid transparent; }
+.day .d { font-size: 0.95rem; font-weight: 600; display: block; }
+.day .l { font-size: 0.7rem; display: block; opacity: 0.85; }
+.day.tot { background: var(--tot-bg); color: var(--tot); }
+.day.kha { background: var(--kha-bg); color: var(--kha); }
+.day.trung { background: var(--trung-bg); color: var(--trung); }
+.day.xau { background: var(--xau-bg); color: var(--xau); }
+.day.today { border-color: var(--brand); }
+.legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.72rem; color: var(--muted); }
+
+.bubble { border-radius: var(--radius); padding: 10px 12px; font-size: 0.9rem; max-width: 92%; }
+.bubble.thay { background: var(--surface); border: 1px solid var(--line); }
+.bubble.me { background: var(--soft); justify-self: end; }
+.who { font-size: 0.72rem; font-weight: 600; color: var(--brand); display: block; margin-bottom: 2px; }
+.chat { display: grid; gap: 8px; }
+
+.price { display: flex; align-items: baseline; gap: 6px; }
+.price b { font-family: var(--display); font-size: 1.6rem; font-variant-numeric: tabular-nums; }
+.btn { font: inherit; font-weight: 600; font-size: 0.92rem; border: 0; border-radius: 999px; min-height: 44px; padding: 0 18px; background: var(--brand); color: var(--onbrand); cursor: pointer; }
+.mock[data-dir="b"] .btn { border-radius: var(--radius); }
+.btn.ghost { background: transparent; color: var(--brand); border: 1px solid var(--brand); }
+.row { display: flex; gap: 8px; flex-wrap: wrap; }
+.journal { font-size: 0.9rem; border-left: 3px solid var(--brand); padding-left: 10px; }
+.journal small { display: block; color: var(--muted); font-size: 0.75rem; }
+
+section.reco { margin-top: 36px; max-width: 72ch; display: grid; gap: 8px; }
+section.reco h2 { margin: 0; font-size: 1.15rem; }
+section.reco p, section.reco li { margin: 0; color: var(--page-fg); }
+section.reco ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="intro">
+    <h1>Mệnh An — ba hướng thiết kế</h1>
+    <p>Mỗi hướng suy ra từ cùng một định nghĩa sản phẩm: giọng "Thầy thông thái, ấm áp, minh bạch", không mê tín lòe loẹt; người dùng 22–35 tuổi, chủ yếu trên điện thoại; chữ tiếng Việt có dấu và đoạn luận giải dài; ba việc lõi là biết mình, có người đồng hành mỗi ngày, chọn ngày cho việc lớn.</p>
+    <p>Thang chấm ngày Tốt · Khá · Trung bình · Xấu dùng chung cho cả ba và tách khỏi màu thương hiệu, để màu thương hiệu không bao giờ bị đọc nhầm thành "ngày tốt" hay "ngày xấu". Mọi cặp màu chữ/nền đã kiểm đạt tương phản AA ở cả hai theme.</p>
+  </header>
+
+  <div class="toolbar" role="group" aria-label="Theme xem thử">
+    <span>Xem ở theme</span>
+    <div class="seg">
+      <button type="button" id="t-system" data-t="system" aria-pressed="true">Theo máy</button>
+      <button type="button" id="t-light" data-t="light" aria-pressed="false">Sáng</button>
+      <button type="button" id="t-dark" data-t="dark" aria-pressed="false">Tối</button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <!-- A -->
+    <div class="col" id="huong-a">
+      <h2>A · Sơn mài</h2>
+      <p class="sub">Đen sơn, vàng thếp, chấm son. Theme tối chính là tranh sơn mài, nên trang Thầy An buổi tối trở thành phiên bản ban đêm của cùng thương hiệu.</p>
+      <div class="swatches" aria-hidden="true">
+        <span class="sw"><i style="background:var(--a-fg)"></i>Đen sơn</span>
+        <span class="sw"><i style="background:var(--a-brand)"></i>Vàng thếp</span>
+        <span class="sw"><i style="background:var(--a-mark)"></i>Son</span>
+        <span class="sw"><i style="background:var(--a-bg)"></i>Nền</span>
+      </div>
+      <div class="mock" data-dir="a">
+        <div class="m-top"><div><div class="m-greet">Chào Linh,</div><div class="m-date">Thứ Năm 8/10 · 27/8 âm lịch · ngày Giáp Tý</div></div><div class="seal" aria-hidden="true">An</div></div>
+        <div class="card"><span class="eyebrow">Hôm nay với tuổi Thìn</span>
+          <div class="verdict"><b>Ngày khá</b><span class="badge kha">Khá</span></div>
+          <p class="advice">Hợp gặp gỡ, bàn việc nhỏ. Việc lớn như ký hợp đồng nên dời sang thứ Hai 12/10, ngày tốt với tuổi bạn.</p>
+          <p class="hours">Giờ tốt nhất: Tỵ (9–11h) · Thân (15–17h)</p></div>
+        <div class="card"><span class="eyebrow">Tuần này</span>
+          <div class="week"><div class="day kha today"><span class="d">8</span><span class="l">Khá</span></div><div class="day trung"><span class="d">9</span><span class="l">TB</span></div><div class="day xau"><span class="d">10</span><span class="l">Xấu</span></div><div class="day trung"><span class="d">11</span><span class="l">TB</span></div><div class="day tot"><span class="d">12</span><span class="l">Tốt</span></div><div class="day kha"><span class="d">13</span><span class="l">Khá</span></div><div class="day tot"><span class="d">14</span><span class="l">Tốt</span></div></div></div>
+        <div class="chat"><div class="bubble me">Năm nay công việc của em thế nào ạ?</div><div class="bubble thay"><span class="who">Thầy An</span>Tiểu Hạn nhập cung Quan Lộc có Tử Vi, nên công việc là trọng tâm năm nay. Dễ có việc mới phát sinh; giữ nhịp làm việc chắc tay, đừng vội đổi chỗ.</div></div>
+        <div class="card"><span class="eyebrow">Gói Đồng Hành</span><div class="price"><b>79.000đ</b><span class="m-date">/ tháng · không tự gia hạn</span></div><div class="row"><button class="btn" type="button">Dùng thử 7 ngày</button><button class="btn ghost" type="button">Xem gói năm</button></div></div>
+      </div>
+      <ul class="why">
+        <li>Có chất liệu riêng của Việt Nam, không lẫn với app tử vi nào.</li>
+        <li>Font tiêu đề Brygada 1918 đọc dấu tiếng Việt tốt ở cỡ nhỏ.</li>
+        <li>Rủi ro: vàng và đen dễ trôi về "sang trọng, huyền bí" nếu dùng tay nặng.</li>
+      </ul>
+    </div>
+
+    <!-- B -->
+    <div class="col" id="huong-b">
+      <h2>B · Chàm</h2>
+      <p class="sub">Màu nhuộm chàm trên giấy sáng, như một cuốn sổ ghi chép của người thầy. Trầm, dễ đọc, đáng tin. Theme tối là đêm chàm có ánh trăng vàng nhạt.</p>
+      <div class="swatches" aria-hidden="true">
+        <span class="sw"><i style="background:var(--b-brand)"></i>Chàm</span>
+        <span class="sw"><i style="background:var(--b-mark)"></i>Dấu son</span>
+        <span class="sw"><i style="background:var(--b-fg)"></i>Mực</span>
+        <span class="sw"><i style="background:var(--b-bg)"></i>Giấy</span>
+      </div>
+      <div class="mock" data-dir="b">
+        <div class="m-top"><div><div class="m-greet">Chào Linh,</div><div class="m-date">Thứ Năm 8/10 · 27/8 âm lịch · ngày Giáp Tý</div></div><div class="seal" aria-hidden="true">An</div></div>
+        <div class="card"><span class="eyebrow">Hôm nay với tuổi Thìn</span>
+          <div class="verdict"><b>Ngày khá</b><span class="badge kha">Khá</span></div>
+          <p class="advice">Hợp gặp gỡ, bàn việc nhỏ. Việc lớn như ký hợp đồng nên dời sang thứ Hai 12/10, ngày tốt với tuổi bạn.</p>
+          <p class="hours">Giờ tốt nhất: Tỵ (9–11h) · Thân (15–17h)</p></div>
+        <div class="card"><span class="eyebrow">Tuần này</span>
+          <div class="week"><div class="day kha today"><span class="d">8</span><span class="l">Khá</span></div><div class="day trung"><span class="d">9</span><span class="l">TB</span></div><div class="day xau"><span class="d">10</span><span class="l">Xấu</span></div><div class="day trung"><span class="d">11</span><span class="l">TB</span></div><div class="day tot"><span class="d">12</span><span class="l">Tốt</span></div><div class="day kha"><span class="d">13</span><span class="l">Khá</span></div><div class="day tot"><span class="d">14</span><span class="l">Tốt</span></div></div></div>
+        <div class="chat"><div class="bubble me">Năm nay công việc của em thế nào ạ?</div><div class="bubble thay"><span class="who">Thầy An</span>Tiểu Hạn nhập cung Quan Lộc có Tử Vi, nên công việc là trọng tâm năm nay. Dễ có việc mới phát sinh; giữ nhịp làm việc chắc tay, đừng vội đổi chỗ.</div></div>
+        <div class="card"><span class="eyebrow">Gói Đồng Hành</span><div class="price"><b>79.000đ</b><span class="m-date">/ tháng · không tự gia hạn</span></div><div class="row"><button class="btn" type="button">Dùng thử 7 ngày</button><button class="btn ghost" type="button">Xem gói năm</button></div></div>
+      </div>
+      <ul class="why">
+        <li>Hợp nhất với giọng "thông thái, minh bạch" và các đoạn luận giải dài.</li>
+        <li>Chàm tách xa hẳn màu Tốt (xanh lá) và Xấu (đỏ) của thang chấm ngày.</li>
+        <li>Rủi ro: dễ thành "app tài chính, nghiêm" nếu thiếu chi tiết ấm (dấu son, font tiêu đề).</li>
+      </ul>
+    </div>
+
+    <!-- C -->
+    <div class="col" id="huong-c">
+      <h2>C · Ngọc</h2>
+      <p class="sub">Một app hiện đại gọn gàng: chỉ một font không chân, bo góc mềm, màu ngọc bích. Gần cảm giác app gốc trên Android nhất.</p>
+      <div class="swatches" aria-hidden="true">
+        <span class="sw"><i style="background:var(--c-brand)"></i>Ngọc</span>
+        <span class="sw"><i style="background:var(--c-fg)"></i>Mực</span>
+        <span class="sw"><i style="background:var(--c-soft)"></i>Ngọc nhạt</span>
+        <span class="sw"><i style="background:var(--c-bg)"></i>Nền</span>
+      </div>
+      <div class="mock" data-dir="c">
+        <div class="m-top"><div><div class="m-greet">Chào Linh,</div><div class="m-date">Thứ Năm 8/10 · 27/8 âm lịch · ngày Giáp Tý</div></div><div class="seal" aria-hidden="true">An</div></div>
+        <div class="card"><span class="eyebrow">Hôm nay với tuổi Thìn</span>
+          <div class="verdict"><b>Ngày khá</b><span class="badge kha">Khá</span></div>
+          <p class="advice">Hợp gặp gỡ, bàn việc nhỏ. Việc lớn như ký hợp đồng nên dời sang thứ Hai 12/10, ngày tốt với tuổi bạn.</p>
+          <p class="hours">Giờ tốt nhất: Tỵ (9–11h) · Thân (15–17h)</p></div>
+        <div class="card"><span class="eyebrow">Tuần này</span>
+          <div class="week"><div class="day kha today"><span class="d">8</span><span class="l">Khá</span></div><div class="day trung"><span class="d">9</span><span class="l">TB</span></div><div class="day xau"><span class="d">10</span><span class="l">Xấu</span></div><div class="day trung"><span class="d">11</span><span class="l">TB</span></div><div class="day tot"><span class="d">12</span><span class="l">Tốt</span></div><div class="day kha"><span class="d">13</span><span class="l">Khá</span></div><div class="day tot"><span class="d">14</span><span class="l">Tốt</span></div></div></div>
+        <div class="chat"><div class="bubble me">Năm nay công việc của em thế nào ạ?</div><div class="bubble thay"><span class="who">Thầy An</span>Tiểu Hạn nhập cung Quan Lộc có Tử Vi, nên công việc là trọng tâm năm nay. Dễ có việc mới phát sinh; giữ nhịp làm việc chắc tay, đừng vội đổi chỗ.</div></div>
+        <div class="card"><span class="eyebrow">Gói Đồng Hành</span><div class="price"><b>79.000đ</b><span class="m-date">/ tháng · không tự gia hạn</span></div><div class="row"><button class="btn" type="button">Dùng thử 7 ngày</button><button class="btn ghost" type="button">Xem gói năm</button></div></div>
+      </div>
+      <ul class="why">
+        <li>Rẻ nhất để làm và giữ đều: một font, ít quy tắc, hợp app Android.</li>
+        <li>Dễ đọc trên điện thoại nhỏ.</li>
+        <li>Rủi ro: dễ lẫn với các app tiện ích khác, ít "hồn" tử vi; ngọc gần màu Tốt nên phải giữ thang chấm ngày thật khác tông.</li>
+      </ul>
+    </div>
+  </div>
+
+  <section class="reco" aria-labelledby="reco-h">
+    <h2 id="reco-h">Đề xuất của Claude</h2>
+    <p><strong>B · Chàm</strong>, lấy thêm hai chi tiết của A: dấu son nhỏ làm điểm nhận diện, và theme tối kiểu đêm sâu cho trang Thầy An.</p>
+    <ul>
+      <li>Khớp nhất với cách sản phẩm muốn được nhìn nhận: thầy thông thái, minh bạch, không huyền bí.</li>
+      <li>Đọc dài tốt nhất (Newsreader cho tiêu đề, Be Vietnam Pro cho nội dung), hợp các bài luận giải và vận năm.</li>
+      <li>Màu thương hiệu không đụng thang chấm ngày, nên lịch và thẻ "Hôm nay" luôn rõ nghĩa.</li>
+      <li>Thoát khỏi kiểu "nền kem, chữ chân, nhấn cam đất" mà giao diện hiện tại và rất nhiều sản phẩm làm bằng AI đang giống nhau.</li>
+    </ul>
+    <p>Bạn có thể chọn khác. Sau khi chốt hướng, bước tiếp theo là viết token vào code và chuyển 5 luồng lõi.</p>
+  </section>
+</div>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll('.seg button');
+  function apply(t) {
+    if (t === 'system') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', t);
+    btns.forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.t === t)); });
+    try { localStorage.setItem('menhan-ds-theme', t); } catch (e) {}
+  }
+  btns.forEach(function (b) { b.addEventListener('click', function () { apply(b.dataset.t); }); });
+  var saved = null;
+  try { saved = localStorage.getItem('menhan-ds-theme'); } catch (e) {}
+  if (saved) apply(saved);
+})();
+</script>
+
+</body></html>

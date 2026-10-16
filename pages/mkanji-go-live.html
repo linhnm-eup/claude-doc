@@ -1,0 +1,576 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>MKANJI Go-Live</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,500;0,600;1,500&family=Be+Vietnam+Pro:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --bg:#EEF2EF;
+    --surface:#FFFFFF;
+    --surface-2:#F5F8F6;
+    --ink:#16211D;
+    --ink-soft:#56645D;
+    --ink-faint:#8B978F;
+    --line:#D9E1DC;
+    --accent:#2B4C6F;
+    --accent-soft:#E4EBF1;
+    --confirmed:#1F7A5C;
+    --confirmed-soft:#E4F1EB;
+    --pending:#8A5E10;
+    --pending-soft:#F5EBD8;
+    --critical:#A6402F;
+    --critical-soft:#F5E4E0;
+    --shadow: 0 1px 2px rgba(22,33,29,.06), 0 8px 24px -12px rgba(22,33,29,.12);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#101A18;
+      --surface:#16211E;
+      --surface-2:#1B2825;
+      --ink:#E8EEEA;
+      --ink-soft:#A3B3AB;
+      --ink-faint:#71827A;
+      --line:#2A3733;
+      --accent:#8FB2D6;
+      --accent-soft:#20303F;
+      --confirmed:#5FC49B;
+      --confirmed-soft:#193029;
+      --pending:#E0B15C;
+      --pending-soft:#332A15;
+      --critical:#E4897B;
+      --critical-soft:#3A211D;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#101A18;
+    --surface:#16211E;
+    --surface-2:#1B2825;
+    --ink:#E8EEEA;
+    --ink-soft:#A3B3AB;
+    --ink-faint:#71827A;
+    --line:#2A3733;
+    --accent:#8FB2D6;
+    --accent-soft:#20303F;
+    --confirmed:#5FC49B;
+    --confirmed-soft:#193029;
+    --pending:#E0B15C;
+    --pending-soft:#332A15;
+    --critical:#E4897B;
+    --critical-soft:#3A211D;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Be Vietnam Pro", "Segoe UI", system-ui, sans-serif;
+    font-size:16px;
+    line-height:1.65;
+    font-variant-numeric: tabular-nums;
+  }
+  ::selection{ background:var(--accent-soft); }
+
+  .page{
+    max-width:760px;
+    margin:0 auto;
+    padding:2.75rem 1.5rem 5rem;
+  }
+
+  h1,h2,h3{
+    font-family:"Newsreader", Georgia, serif;
+    text-wrap:balance;
+    font-weight:600;
+    color:var(--ink);
+    margin:0;
+  }
+
+  .eyebrow{
+    font-family:"Be Vietnam Pro", sans-serif;
+    text-transform:uppercase;
+    letter-spacing:.09em;
+    font-size:.72rem;
+    font-weight:600;
+    color:var(--ink-faint);
+  }
+
+  a{ color:var(--accent); }
+
+  code, .mono{
+    font-family:"IBM Plex Mono", ui-monospace, monospace;
+    font-size:.86em;
+  }
+  code{
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    padding:.05em .38em;
+    border-radius:4px;
+    color:var(--ink);
+  }
+
+  /* ---------- Masthead ---------- */
+  .masthead{
+    background:var(--accent-soft);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:1.6rem 1.75rem;
+    margin-bottom:2.25rem;
+  }
+  .masthead .kicker{
+    display:flex;
+    align-items:baseline;
+    gap:.6rem;
+    margin-bottom:.9rem;
+  }
+  .masthead .kicker .mark{
+    font-family:"Newsreader", serif;
+    font-style:italic;
+    font-weight:500;
+    font-size:1.05rem;
+    color:var(--accent);
+  }
+  .masthead h1{
+    font-size:1.9rem;
+    line-height:1.2;
+    margin-bottom:.15rem;
+  }
+  .masthead .subtitle{
+    color:var(--ink-soft);
+    font-size:.98rem;
+    max-width:52ch;
+  }
+  .memo-fields{
+    margin-top:1.35rem;
+    padding-top:1.1rem;
+    border-top:1px solid var(--line);
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:.55rem 1.5rem;
+  }
+  .memo-fields dt{
+    font-size:.68rem;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--ink-faint);
+    font-weight:600;
+  }
+  .memo-fields dd{
+    margin:.1rem 0 0;
+    font-size:.92rem;
+  }
+
+  /* ---------- At-a-glance strip ---------- */
+  .glance{
+    margin-bottom:2.75rem;
+  }
+  .glance-label{
+    margin-bottom:.7rem;
+  }
+  .glance-grid{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    border:1px solid var(--line);
+    border-radius:10px;
+    overflow:hidden;
+    background:var(--surface);
+    box-shadow:var(--shadow);
+  }
+  .glance-cell{
+    padding:.9rem .75rem 1rem;
+    border-right:1px solid var(--line);
+    display:flex;
+    flex-direction:column;
+    gap:.5rem;
+    min-width:0;
+  }
+  .glance-cell:last-child{ border-right:none; }
+  .glance-num{
+    font-family:"Newsreader", serif;
+    font-size:1.3rem;
+    color:var(--accent);
+  }
+  .glance-title{
+    font-size:.78rem;
+    font-weight:600;
+    line-height:1.3;
+  }
+  .chip{
+    display:inline-flex;
+    align-items:center;
+    gap:.35em;
+    font-size:.68rem;
+    font-weight:600;
+    padding:.22em .6em;
+    border-radius:99px;
+    letter-spacing:.01em;
+    width:fit-content;
+    white-space:nowrap;
+  }
+  .chip::before{
+    content:"";
+    width:.4em; height:.4em;
+    border-radius:50%;
+    background:currentColor;
+    display:inline-block;
+  }
+  .chip.pending{ background:var(--pending-soft); color:var(--pending); }
+  .chip.confirmed{ background:var(--confirmed-soft); color:var(--confirmed); }
+  .chip.critical{ background:var(--critical-soft); color:var(--critical); }
+  .chip.outline{
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--ink-soft);
+  }
+  .chip.outline::before{ display:none; }
+
+  /* ---------- Section headers ---------- */
+  .section{ margin-bottom:2.5rem; }
+  .section > h2{
+    font-size:1.3rem;
+    padding-bottom:.6rem;
+    border-bottom:2px solid var(--ink);
+    margin-bottom:1.1rem;
+  }
+  .section > .lede{
+    color:var(--ink-soft);
+    margin-bottom:1.1rem;
+  }
+
+  .context-grid{
+    display:grid;
+    gap:.85rem;
+  }
+  .context-grid li{
+    list-style:none;
+    padding-left:1.15rem;
+    position:relative;
+  }
+  .context-grid li::before{
+    content:"—";
+    position:absolute; left:0; top:0;
+    color:var(--ink-faint);
+  }
+
+  /* ---------- Docket (requirement) ---------- */
+  .docket{
+    display:grid;
+    grid-template-columns:2.6rem 1fr;
+    gap:0 1.1rem;
+    padding:1.5rem 0;
+    border-top:1px solid var(--line);
+  }
+  .docket:first-of-type{ border-top:none; padding-top:.25rem; }
+  .docket-num{
+    font-family:"Newsreader", serif;
+    font-style:italic;
+    font-size:1.7rem;
+    color:var(--ink-faint);
+    line-height:1.15;
+  }
+  .docket-head{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:baseline;
+    gap:.6rem .8rem;
+    margin-bottom:.55rem;
+  }
+  .docket-head h3{ font-size:1.12rem; }
+  .docket-body > *{ margin:0 0 .8rem; }
+  .docket-body > *:last-child{ margin-bottom:0; }
+  .docket-body ul, .docket-body ol{
+    padding-left:1.2rem;
+    margin:0 0 .8rem;
+  }
+  .docket-body li{ margin-bottom:.4rem; }
+  .docket-body li:last-child{ margin-bottom:0; }
+
+  .evidence{
+    border-left:3px solid var(--confirmed);
+    background:var(--confirmed-soft);
+    border-radius:0 8px 8px 0;
+    padding:.8rem 1rem;
+    font-size:.92rem;
+  }
+  .evidence .tag{
+    display:block;
+    font-size:.68rem;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    font-weight:700;
+    color:var(--confirmed);
+    margin-bottom:.35rem;
+  }
+  .todo{
+    border-left:3px solid var(--pending);
+    background:var(--pending-soft);
+    border-radius:0 8px 8px 0;
+    padding:.8rem 1rem;
+    font-size:.92rem;
+  }
+  .todo .tag{
+    display:block;
+    font-size:.68rem;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    font-weight:700;
+    color:var(--pending);
+    margin-bottom:.35rem;
+  }
+  .flag{
+    border-left:3px solid var(--critical);
+    background:var(--critical-soft);
+    border-radius:0 8px 8px 0;
+    padding:.8rem 1rem;
+    font-size:.92rem;
+  }
+  .flag .tag{
+    display:block;
+    font-size:.68rem;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    font-weight:700;
+    color:var(--critical);
+    margin-bottom:.35rem;
+  }
+
+  /* ---------- Bill list ---------- */
+  .billscroll{ overflow-x:auto; }
+  .bills{
+    width:100%;
+    border-collapse:collapse;
+    font-size:.9rem;
+    min-width:420px;
+  }
+  .bills th{
+    text-align:left;
+    font-size:.68rem;
+    text-transform:uppercase;
+    letter-spacing:.07em;
+    color:var(--ink-faint);
+    font-weight:600;
+    padding:.4rem .6rem;
+    border-bottom:1px solid var(--line);
+  }
+  .bills td{
+    padding:.5rem .6rem;
+    border-bottom:1px solid var(--line);
+  }
+  .bills tr:last-child td{ border-bottom:none; }
+
+  footer{
+    margin-top:3rem;
+    padding-top:1.25rem;
+    border-top:1px solid var(--line);
+    font-size:.82rem;
+    color:var(--ink-faint);
+    display:flex;
+    justify-content:space-between;
+    gap:1rem;
+    flex-wrap:wrap;
+  }
+
+  @media (max-width:640px){
+    .memo-fields{ grid-template-columns:1fr; }
+    .glance-grid{ grid-template-columns:1fr; }
+    .glance-cell{ border-right:none; border-bottom:1px solid var(--line); }
+    .glance-cell:last-child{ border-bottom:none; }
+    .docket{ grid-template-columns:1fr; }
+    .docket-num{ display:none; }
+  }
+</style>
+
+<div class="page">
+
+  <div class="masthead">
+    <div class="kicker"><span class="mark">Nội bộ</span> <span class="eyebrow">· không gửi cho Kanji</span></div>
+    <h1>Go-live MKANJI — bản xem trước khi trả lời</h1>
+    <p class="subtitle">Đối chiếu 5 yêu cầu của team Mazii Kanji với code <code>platform_payments</code> đang chạy, để mình thống nhất trước khi phản hồi.</p>
+    <dl class="memo-fields">
+      <div><dt>Kính gửi</dt><dd>Anh</dd></div>
+      <div><dt>Từ</dt><dd>Linh</dd></div>
+      <div><dt>Về việc</dt><dd>Yêu cầu production go-live MKANJI (Mazii Kanji)</dd></div>
+      <div><dt>Nguồn</dt><dd><code>specs/kanji.md</code></dd></div>
+    </dl>
+  </div>
+
+  <div class="glance">
+    <p class="eyebrow glance-label">Nhìn nhanh — 5 yêu cầu, theo đúng thứ tự Kanji hỏi</p>
+    <div class="glance-grid">
+      <div class="glance-cell">
+        <span class="glance-num">1</span>
+        <span class="glance-title">URL webhook đang đăng ký</span>
+        <span class="chip pending">tra hạ tầng</span>
+      </div>
+      <div class="glance-cell">
+        <span class="glance-num">2</span>
+        <span class="glance-title">Xoay 3 token</span>
+        <span class="chip critical">cần quyết định</span>
+      </div>
+      <div class="glance-cell">
+        <span class="glance-num">3</span>
+        <span class="glance-title">Retry / mã lỗi HTTP</span>
+        <span class="chip critical">lệch giả định</span>
+      </div>
+      <div class="glance-cell">
+        <span class="glance-num">4</span>
+        <span class="glance-title">IP gọi webhook ra</span>
+        <span class="chip pending">tra hạ tầng</span>
+      </div>
+      <div class="glance-cell">
+        <span class="glance-num">5</span>
+        <span class="glance-title">Đầu mối ngoài giờ</span>
+        <span class="chip pending">tra vận hành</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Bối cảnh</h2>
+    <ul class="context-grid">
+      <li>Kanji là 1 project trên payment, <code>project_id = MKANJI</code>, mã nội bộ <strong>102</strong> — khớp <code>ACB_ACCOUNT_MAZII: {"MAZII": 101, "MKANJI": 102}</code> (<code>app/utils/helper.py:421</code>).</li>
+      <li>Dùng <strong>chung số tài khoản ACB với Mazii</strong> (101) — không có <code>ACB_ACCOUNT</code> riêng cho Kanji (<code>app/config/settings.py:177</code>).</li>
+      <li>QR lưu ở <code>uploads/mazii_kanji/</code> — khớp <code>UPLOADS_MAZII_KANJI_PATH</code> (<code>app/utils/helper.py:51</code>).</li>
+      <li>2 chiều gọi: Kanji → <code>POST /payment/virtual-bill</code> để tạo QR; Payment → Kanji ở <code>POST /api/purchase/payment-noti</code>, header <code>Authorization</code> là token thô, <strong>không</strong> có <code>Bearer</code> — khớp cách code build header (<code>payment_acb.py:227-228</code>).</li>
+      <li>Noti bắn về <strong>cả 2 môi trường</strong> mỗi giao dịch: bản PRODUCT trước, bản DEV ngay sau, trong nhánh riêng cho <code>MAZII_KANJI</code> (<code>payment_acb.py:263-268</code>) — khớp mô tả của Kanji.</li>
+      <li>Bản dev đã chạy tiền thật 08/09 (QR 5.000đ, webhook về sau 26s, cấp Premium đúng) → dev không cần dựng lại, chỉ còn chuẩn bị production.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>5 yêu cầu cần xử lý</h2>
+
+    <div class="docket">
+      <div class="docket-num">1</div>
+      <div>
+        <div class="docket-head">
+          <h3>Xác nhận URL webhook MKANJI đang đăng ký</h3>
+          <span class="chip outline">cấu hình</span>
+        </div>
+        <div class="docket-body">
+          <p>Kanji cần chắc production đang trỏ đúng <code>https://api-kanji.mazii.net/api/purchase/payment-noti</code> — vì token của cả 2 URL do họ sinh và gửi qua chat cho anh Sinh, nên họ không biết anh Sinh đã nạp đúng cái nào.</p>
+          <div class="todo">
+            <span class="tag">Cần làm</span>
+            Mở <code>.env</code> trên server production, đọc <code>MAZII_KANJI_NOTI_PRODUCT</code> và <code>MAZII_KANJI_NOTI_DEV</code>, đối chiếu với 2 URL Kanji xác nhận.
+          </div>
+          <div class="evidence">
+            <span class="tag">Đã xác nhận qua code</span>
+            2 biến này được code đọc thật, không chỉ để tài liệu — <code>app/config/settings.py:182,184</code>, dùng ở <code>payment_acb.py:225,268</code>. Giá trị mẫu trong <code>.env.example</code> chỉ là placeholder, giá trị thật nằm ở <code>.env</code> runtime (không có trong repo).
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="docket">
+      <div class="docket-num">2</div>
+      <div>
+        <div class="docket-head">
+          <h3>Xoay 3 token — vì cả 3 từng đi qua chat cá nhân anh Sinh</h3>
+          <span class="chip outline">bảo mật</span>
+        </div>
+        <div class="docket-body">
+          <p><strong>2a — Token virtual-bill</strong>: Kanji xin token mới riêng cho họ.</p>
+          <div class="flag">
+            <span class="tag">⚠ Cần quyết định kiến trúc, không chỉ đổi giá trị</span>
+            Token này hiện dùng chung cho <strong>14 project ACB</strong>, không riêng Kanji — <code>middleware/security.py:30-31</code> map cả <code>/payment/virtual-bill</code> lẫn <code>/payment/virtual-bill-qr-data</code> vào một biến duy nhất <code>VIRTRUAL_BILL_TOKEN</code>. Middleware chỉ chấp nhận 1 token hợp lệ cho path này. Muốn cấp token riêng cho Kanji thì phải sửa code (nhiều token hợp lệ cho cùng path), không phải việc đổi <code>.env</code>.
+          </div>
+          <p><strong>2b — 2 token webhook dev/prod</strong>: Kanji sẽ sinh lại, gửi qua kênh riêng.</p>
+          <div class="todo">
+            <span class="tag">Cần làm</span>
+            Cập nhật <code>ACB_MAZII_KANJI_TOKEN</code> và <code>ACB_MAZII_KANJI_TOKEN_DEV</code> <strong>đồng thời với Kanji</strong> — 2 biến độc lập, không có cơ chế xoay vòng song song nào (<code>app/config/settings.py:183,185</code>), lệch nhịp là 401 ngay.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="docket">
+      <div class="docket-num">3</div>
+      <div>
+        <div class="docket-head">
+          <h3>Chính sách retry / mã lỗi HTTP</h3>
+          <span class="chip outline">xác nhận hành vi</span>
+        </div>
+        <div class="docket-body">
+          <p>Kanji giả định: <code>4xx</code> → payment dừng, không gọi lại; chỉ <code>5xx</code>/timeout → gọi lại tối đa 3 lần. Họ hỏi khoảng cách giữa các lần và timeout mỗi lần.</p>
+          <div class="flag">
+            <span class="tag">⚠ Phát hiện lệch — không có cơ chế retry nào trong code</span>
+            <code>call_api()</code> (<code>app/utils/api.py:19-67</code>, dùng để gửi noti MKANJI) gọi <code>requests.post(..., timeout=2)</code> <strong>đúng 1 lần</strong>. Mọi lỗi — kể cả <code>4xx</code> Kanji trả về — rơi vào <code>except</code> chung, chỉ ghi <code>response_code=500</code> vào <code>project_logs</code> (<code>api.py:63-66</code>), <strong>không gọi lại</strong>. Không có cron/job nào quét lại các bản ghi lỗi để gửi tiếp.
+          </div>
+          <p>Nên báo lại đúng thực trạng cho Kanji thay vì xác nhận theo giả định của họ. Nếu thấy cần retry thật, đó là việc phải <em>làm thêm</em>, không phải xác nhận hành vi có sẵn.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="docket">
+      <div class="docket-num">4</div>
+      <div>
+        <div class="docket-head">
+          <h3>IP nguồn gọi webhook ra ngoài</h3>
+          <span class="chip outline">hạ tầng</span>
+        </div>
+        <div class="docket-body">
+          <p>Kanji đoán payment gọi ra từ <code>144.126.240.58</code> (IP mà <code>payments.eup.ai</code> trỏ tới) để whitelist trên Cloudflare phía họ.</p>
+          <div class="todo">
+            <span class="tag">Chưa xác định trong repo — cần tra trực tiếp trên hạ tầng</span>
+            <code>Jenkinsfile</code> chỉ cho biết 3 host build/deploy (<code>188.166.208.109</code>, <code>165.22.111.38</code>, <code>206.189.41.199</code> — <code>Jenkinsfile:16,38,45</code>), <strong>không trùng</strong> IP Kanji đoán. IP DNS trỏ tới và IP egress thật của container có thể khác nhau (NAT/nhiều node Swarm) — nên xác nhận bằng <code>curl ifconfig.me</code> từ trong container, hoặc log phía Kanji khi nhận request, thay vì suy từ DNS.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="docket">
+      <div class="docket-num">5</div>
+      <div>
+        <div class="docket-head">
+          <h3>Đầu mối liên hệ khi payment lỗi ngoài giờ</h3>
+          <span class="chip outline">vận hành</span>
+        </div>
+        <div class="docket-body">
+          <p>Thuần tổ chức, không có gì để tra trong code. Kanji sắp nhận tiền thật, cần biết ai trực và kênh nào khi khách đã chuyển tiền mà noti không về.</p>
+          <div class="todo">
+            <span class="tag">Cần làm</span>
+            Chốt người trực + kênh liên hệ khẩn (chat/hotline) + SLA phản hồi, rồi mới trả lời Kanji.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Thông tin Kanji đã cho sẵn — khỏi tra lại</h2>
+    <ul class="context-grid">
+      <li>Họ gửi <code>is_admin: 1</code> khi tạo bill để mỗi lần mua ra <code>transaction_code</code> mới, tránh bị gộp theo giờ.</li>
+      <li>Họ <strong>không</strong> dùng cột <code>active</code> của virtual-bill để biết đã thanh toán (theo họ, anh Sinh nói cột này luôn <code>null</code> do bug) — chỉ dựa vào webhook.</li>
+    </ul>
+    <div class="flag" style="margin-top:.9rem;">
+      <span class="tag">⚠ Mâu thuẫn nhỏ, đáng để ý riêng (không phải scope trả lời lần này)</span>
+      Code hiện tại <strong>có</strong> set <code>active = 1</code> khi khớp giao dịch (<code>payment_acb.py:255</code>). Nếu thực tế cột luôn <code>null</code> như họ nói, bug nằm ở chỗ khác (ghi thành công nhưng field không map đúng, hoặc đọc ra ở API khác) — có thể điều tra sau, không cần trong lần trả lời này.
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Dọn dẹp</h2>
+    <p class="lede">3 bill test 1&nbsp;VND trên production, ngày 12/08, <code>user_id = 1</code>:</p>
+    <div class="billscroll">
+      <table class="bills">
+        <thead><tr><th>Transaction code</th><th>User</th><th>Số tiền</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">TSHURINU8cOQJjN1W</td><td>1</td><td>1 VND</td></tr>
+          <tr><td class="mono">TSHURINU8f11GAN1W</td><td>1</td><td>1 VND</td></tr>
+          <tr><td class="mono">TSHURINU8f2vF0N1W</td><td>1</td><td>1 VND</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section" style="margin-bottom:0;">
+    <h2>Ngoài scope trả lời lần này</h2>
+    <p class="lede" style="margin-bottom:0;">Tài liệu 11/08 của anh Sinh về endpoint <code>virtual-bill</code> (bảng field, cơ chế gộp bill theo giờ, mã lỗi) — Kanji còn giữ bản, có thể xin lại nếu cần đối chiếu. Không có bản này trong repo.</p>
+  </div>
+
+  <footer>
+    <span>Bản phân tích nội bộ — dựa trên <code>specs/kanji.md</code> và code <code>platform_payments</code> tại thời điểm viết.</span>
+    <span>Chuẩn bị bởi Linh</span>
+  </footer>
+
+</div>
+
+</body></html>

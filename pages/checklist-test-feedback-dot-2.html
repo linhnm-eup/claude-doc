@@ -1,0 +1,290 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Checklist test feedback đợt 2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: một cột hẹp như phiếu QA — tóm tắt tiến độ dính trên cùng, rồi từng nhóm mục test. */
+:root {
+  --bg: #f6f7f9; --surface: #ffffff; --fg: #1b2230; --muted: #5d6676; --line: #dfe3ea;
+  --accent: #2f5bd3; --accent-soft: #e6ecfb;
+  --pass: #1f8a55; --pass-soft: #e3f4ea; --fail: #c4352b; --fail-soft: #fbe7e5; --warn: #9a6a00; --warn-soft: #fbf1d9;
+  --code-bg: #eef1f6;
+  --f-body: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #12151b; --surface: #1a1e26; --fg: #e5e8ee; --muted: #98a1b1; --line: #2c3240;
+  --accent: #7d9cf0; --accent-soft: #232c45;
+  --pass: #5cc98f; --pass-soft: #1b3127; --fail: #f07b71; --fail-soft: #3a1f1d; --warn: #e3b552; --warn-soft: #362c16;
+  --code-bg: #232833; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #12151b; --surface: #1a1e26; --fg: #e5e8ee; --muted: #98a1b1; --line: #2c3240;
+  --accent: #7d9cf0; --accent-soft: #232c45;
+  --pass: #5cc98f; --pass-soft: #1b3127; --fail: #f07b71; --fail-soft: #3a1f1d; --warn: #e3b552; --warn-soft: #362c16;
+  --code-bg: #232833; color-scheme: dark }
+
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--fg); font: 15px/1.55 var(--f-body); padding-inline: 16px; padding-block: 0 64px }
+.wrap { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px }
+h1, h2, h3 { text-wrap: balance; margin: 0; line-height: 1.25 }
+h1 { font-size: 26px; font-weight: 700 }
+h2 { font-size: 18px; font-weight: 600 }
+p { margin: 0 }
+code, pre { font-family: var(--f-mono); font-size: 13px }
+code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere }
+a { color: var(--accent) }
+
+header.top { padding-top: 32px; display: flex; flex-direction: column; gap: 8px }
+.meta { color: var(--muted); font-size: 13px; display: flex; flex-wrap: wrap; gap: 4px 14px }
+.alert { background: var(--warn-soft); color: var(--fg); border-left: 3px solid var(--warn); padding: 10px 14px; border-radius: 0 6px 6px 0; font-size: 14px }
+
+.progress { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 10px; border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px }
+.bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: var(--line) }
+.bar span { transition: width .3s }
+.bar .p { background: var(--pass) } .bar .f { background: var(--fail) }
+.counts { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; font-variant-numeric: tabular-nums; align-items: center }
+.counts b { font-weight: 600 }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; vertical-align: 1px }
+.filters { margin-left: auto; display: flex; gap: 4px }
+.filters button { font: inherit; font-size: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); padding: 3px 10px; border-radius: 999px; cursor: pointer }
+.filters button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); border-color: var(--accent) }
+#sync { font-size: 12px; color: var(--muted) }
+
+.setup { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 18px; display: flex; flex-direction: column; gap: 12px }
+.setup ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px }
+.cmd { position: relative; background: var(--code-bg); border-radius: 6px; overflow-x: auto }
+.cmd pre { margin: 0; padding: 12px 70px 12px 14px; white-space: pre }
+.copy { position: absolute; top: 8px; right: 8px; font: 12px var(--f-body); border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 4px; padding: 2px 8px; cursor: pointer }
+
+section.group { display: flex; flex-direction: column; gap: 10px }
+.ghead { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap }
+.ghead .tag { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted) }
+.gnote { color: var(--muted); font-size: 14px }
+
+.item { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; display: grid; grid-template-columns: 52px 1fr; gap: 4px 14px }
+.item[data-status="pass"] { border-color: color-mix(in srgb, var(--pass) 45%, var(--line)) }
+.item[data-status="fail"] { border-color: var(--fail); background: var(--fail-soft) }
+.num { font: 500 13px var(--f-mono); color: var(--accent); background: var(--accent-soft); border-radius: 4px; text-align: center; padding: 2px 0; align-self: start }
+.body { min-width: 0; display: flex; flex-direction: column; gap: 8px }
+.area { font-size: 12px; color: var(--muted) }
+.step { font-weight: 500 }
+.expect { font-size: 14px; color: var(--fg) }
+.expect::before { content: "Kết quả đúng: "; color: var(--muted) }
+.controls { display: flex; flex-wrap: wrap; gap: 6px; align-items: center }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden }
+.seg button { font: inherit; font-size: 13px; border: 0; background: var(--surface); color: var(--muted); padding: 5px 12px; cursor: pointer }
+.seg button + button { border-left: 1px solid var(--line) }
+.seg button[aria-pressed="true"][data-v="pass"] { background: var(--pass-soft); color: var(--pass); font-weight: 600 }
+.seg button[aria-pressed="true"][data-v="fail"] { background: var(--fail); color: #fff; font-weight: 600 }
+.seg button[aria-pressed="true"][data-v="todo"] { background: var(--code-bg); color: var(--fg) }
+.seg button:disabled { cursor: default; opacity: .6 }
+.who { font-size: 12px; color: var(--muted) }
+textarea.note { width: 100%; font: inherit; font-size: 14px; color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; resize: vertical; min-height: 60px }
+button:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+.cost { font-size: 11px; padding: 1px 7px; border-radius: 999px; background: var(--warn-soft); color: var(--warn); white-space: nowrap }
+
+footer.end { font-size: 14px; color: var(--muted); display: flex; flex-direction: column; gap: 6px }
+@media (max-width: 480px) { .item { grid-template-columns: 1fr } .num { justify-self: start; padding: 2px 8px } .filters { margin-left: 0 } }
+@media (prefers-reduced-motion: reduce) { .bar span { transition: none } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <h1>Checklist test feedback đợt 2</h1>
+    <div class="meta"><span>Nhánh <code>fix/test-tool-feedback-2</code> → <code>develop</code></span><span>Nguồn: FigJam <i>banner-feedback</i></span><span>Cập nhật 09/10/2026</span></div>
+    <p class="alert">Merge PR vào <code>develop</code> sẽ deploy thẳng lên <code>creative.eup.ai</code> (Jenkins không còn Quality Gate). Chỉ merge khi mọi mục đều đạt.</p>
+  </header>
+
+  <div class="progress" aria-live="polite">
+    <div class="bar"><span class="p" id="barP" style="width:0"></span><span class="f" id="barF" style="width:0"></span></div>
+    <div class="counts">
+      <span><span class="dot" style="background:var(--pass)"></span>Đạt <b id="cP">0</b></span>
+      <span><span class="dot" style="background:var(--fail)"></span>Lỗi <b id="cF">0</b></span>
+      <span><span class="dot" style="background:var(--line)"></span>Chưa test <b id="cT">0</b></span>
+      <span id="sync">Đang kết nối…</span>
+      <span class="filters" role="group" aria-label="Lọc">
+        <button id="fAll" data-f="all" aria-pressed="true">Tất cả</button>
+        <button id="fTodo" data-f="todo" aria-pressed="false">Chưa test</button>
+        <button id="fFail" data-f="fail" aria-pressed="false">Lỗi</button>
+      </span>
+    </div>
+  </div>
+
+  <section class="setup">
+    <h2>Chuẩn bị</h2>
+    <div class="cmd"><pre>git checkout fix/test-tool-feedback-2
+docker compose up -d --build</pre><button class="copy" type="button">Chép</button></div>
+    <ul>
+      <li>Mở <b>http://localhost:8610</b> (qua gateway, không mở thẳng cổng frontend). Hoặc test trên môi trường được deploy từ nhánh này.</li>
+      <li><code>.env</code> cần <code>OPENAI_API_KEY</code>, <code>OPENAI_IMAGE_EDITS_URL</code>, <code>OPENAI_IMAGE_GENERATIONS_URL</code> để tạo được ảnh.</li>
+      <li>Đăng nhập tài khoản đã gán tenant; chọn dự án có brand kit, ít nhất 2 khổ và 2 ngôn ngữ.</li>
+      <li>Mở DevTools → tab <b>Network</b> để xem request.</li>
+      <li>Làm nhóm A (không tốn lượt tạo ảnh) trước, rồi nhóm B.</li>
+    </ul>
+  </section>
+
+  <div id="groups"></div>
+
+  <footer class="end">
+    <p><b>Mục bị lỗi:</b> bấm "Lỗi", ghi thao tác đã làm vào ô ghi chú, kèm request/response từ tab Network nếu có. Ảnh chụp màn hình gửi qua chat cho dev.</p>
+    <p>Trạng thái và ghi chú được lưu chung: ai mở trang cũng thấy cùng một bảng.</p>
+  </footer>
+</div>
+
+<script>
+const GROUPS = [
+  { key: 'A', title: 'Giao diện', tag: 'Không tốn lượt tạo ảnh', items: [
+    { id: 'a1-panel', num: '#1', area: 'AI Design · Ý tưởng hình ảnh', step: 'Gõ một đoạn dài vào ô "Ý tưởng hình ảnh".', expect: 'Panel trái rộng hơn trước. Ô cao dần theo chữ, tới khoảng 40% màn hình thì cuộn bên trong ô; nút Gen vẫn nhìn thấy.' },
+    { id: 'a1-limit', num: '#1', area: 'AI Design · Ý tưởng hình ảnh', step: 'Dán hơn 300 từ vào ô ý tưởng.', expect: 'Bộ đếm "301/300 từ" chuyển đỏ, nút Gen bị khoá, dưới nút ghi "Ý tưởng vượt 300 từ". Chữ không bị cắt mất.' },
+    { id: 'a3-cards', num: '#3 #6', area: 'AI Design và Resize & Translate · Đầu ra', step: 'Xem các thẻ chọn khổ ở bước Đầu ra của cả hai workspace.', expect: 'Mỗi thẻ chỉ một dòng (vd "1080x1080"), không còn dòng "1080×1080" lặp lại. Thẻ nhỏ hơn, mỗi hàng nhiều thẻ hơn.' },
+    { id: 'a3-popup', num: '#3', area: 'Cài đặt → Dự án', step: 'Thêm khổ "Popup 600x400" vào dự án, quay lại studio.', expect: 'Hình tỉ lệ trên thẻ là 3:2, không phải 16:9.' },
+    { id: 'a9-ref', num: '#9', area: 'Social Media Kit · Print Design', step: 'Ở AI Design tải 2 ảnh tham chiếu, rồi chuyển sang Social Media Kit, sau đó Print Design.', expect: 'Bước 1 của cả hai có ô "Ảnh tham chiếu" hiện đúng 2 ảnh đó và xoá được.' },
+    { id: 'a11-layout', num: '#11', area: 'Social Media Kit', step: 'Chọn một nền tảng, xem bước 3.', expect: 'Bước 3 tên "Bố cục bài đăng", có gợi ý "Cách xếp ảnh và khổ ảnh, không phải mẫu màu".' },
+    { id: 'a15-prompt', num: '#15', area: 'Cài đặt → Dự án & Brand kit', step: 'Kéo xuống phần 2 ô prompt.', expect: 'Dưới mỗi ô có chú thích ô đó dùng khi nào (prompt tạo banner mới / prompt Popup).' },
+    { id: 'a12-formats', num: '#12', area: 'Print Design · Đầu ra', step: 'Mở lựa chọn Định dạng tệp.', expect: 'Chỉ còn PDF và TIFF, không còn PDF/X-4.' },
+    { id: 'a4b-empty', num: '#4b', area: 'Thư viện', step: 'Vào Thư viện bằng tài khoản chưa lưu bộ nào (nếu có).', expect: 'Hiện "Thư viện còn trống" kèm nút "Xem tất cả ảnh đã tạo"; bấm nút thì lưới ảnh lịch sử hiện ra.' },
+    { id: 'a4b-open', num: '#4b', area: 'Thư viện · Tất cả ảnh', step: 'Bấm vào một ảnh trong lưới.', expect: 'Tab mới mở ảnh gốc cỡ đầy đủ (không tải về máy).' },
+    { id: 'a14-filters', num: '#14', area: 'Thư viện · Tất cả ảnh', step: 'Mở ô lọc khổ và ô lọc ngôn ngữ.', expect: 'Có đủ khổ và ngôn ngữ trong cấu hình dự án, không chỉ một lựa chọn.' },
+  ]},
+  { key: 'B', title: 'Tạo ảnh và tải về', tag: 'Tốn lượt tạo ảnh', items: [
+    { id: 'b4c-card', num: '#4c', area: 'AI Design · Kết quả', step: 'Tạo 1 ảnh khổ ngang, vd 1200x628.', expect: 'Thẻ kết quả hiện đủ ảnh, không mất phần trên/dưới (có thể có dải nền hai bên).' },
+    { id: 'b8-viewer', num: '#4c #8', area: 'AI Design · Xem lớn', step: 'Bấm ảnh để mở ô xem lớn, kéo khoanh một vùng ghi chú.', expect: 'Ảnh hiện đủ, khung ôm sát ảnh, vùng khoanh nằm đúng chỗ đã kéo.' },
+    { id: 'b4a-tab', num: '#4a', area: 'AI Design', step: 'Trong lúc đang tạo, chuyển sang Thư viện rồi quay lại.', expect: 'Lượt tạo vẫn chạy, ảnh vẫn còn.' },
+    { id: 'b4d-resize', num: '#4d', area: 'AI Design · Kết quả', step: 'Khi đã có ảnh, không tick chọn ảnh nào.', expect: 'Nút "Chuyển sang Resize & Translate" hiện sẵn; bấm thì ảnh thành creative gốc ở Resize.' },
+    { id: 'b12-raster', num: '#12', area: 'Tải về', step: 'Tải ảnh với định dạng PNG, rồi JPEG, rồi WebP.', expect: 'Đuôi tệp đúng và định dạng thật khớp đuôi (xem Properties hoặc chạy lệnh `file <tệp>`). Trước đây luôn là PNG.' },
+    { id: 'b12-print', num: '#12', area: 'Print Design · Tải về', step: 'Tạo 1 ấn phẩm A5, tải PDF rồi tải TIFF.', expect: 'PDF mở được, khổ trang 154×216 mm (A5 + 3 mm tràn lề mỗi cạnh). TIFF mở được ở Photoshop, Image Size có ghi DPI.' },
+    { id: 'b5-keep', num: '#5', area: 'Resize & Translate · Giữ từ bản gốc', step: 'Dùng ảnh vừa tạo, bỏ tick "Bảng màu", chọn 2 khổ rồi Gen.', expect: 'Request `replicate-banner` có field `keep` không chứa `palette`, và `project` là brand đang chọn. Ảnh ra được phép đổi màu, khác lần chạy giữ đủ tick.' },
+    { id: 'b9-noref', num: '#9', area: 'Social Media Kit', step: 'Xoá hết ảnh tham chiếu rồi Gen.', expect: 'Request `gen-banner` không kèm file ảnh (trước đây gửi ngầm ảnh của AI Design).' },
+    { id: 'b1-idea', num: '#1', area: 'Social Media Kit · Print Design', step: 'Gen trong lúc ô ý tưởng ở AI Design vẫn còn chữ.', expect: 'Request `gen-banner` có `idea` rỗng.' },
+    { id: 'b13-save', num: '#13', area: 'Thư viện · Theo bộ', step: 'Bấm "Lưu vào thư viện" ở kết quả, rồi vào Thư viện chế độ "Theo bộ".', expect: 'Dòng của bộ hiện email người lưu. Có lọc người tạo và từ ngày/đến ngày: chọn hôm nay thì bộ hiện, chọn hôm qua thì bộ biến mất.' },
+    { id: 'b10-gen', num: '#10', area: 'Social Media Kit · Print Design', step: 'Gen một lượt ở mỗi workspace.', expect: 'Tạo được ảnh. Nếu lỗi: chép thông báo trên màn hình vào ghi chú và lấy log `docker compose logs backend --since 10m`.' },
+    { id: 'b17-quota', num: '#17', area: 'Cài đặt → Người dùng', step: 'Đặt hạn mức tháng cho một tài khoản.', expect: 'Cột "Hạn mức/tháng" hiện đúng; vàng khi ≥75%, đỏ khi chạm trần.' },
+  ]},
+  { key: 'C', title: 'Kiểm tra phụ', tag: 'Môi trường và chặn ở backend', items: [
+    { id: 'c-1366', num: '#1', area: 'Màn hình nhỏ', step: 'Thu cửa sổ trình duyệt về khoảng 1366px chiều ngang.', expect: 'Panel rộng hơn không làm chật vùng kết quả.' },
+    { id: 'c-en', num: 'i18n', area: 'Ngôn ngữ giao diện', step: 'Đổi giao diện sang English.', expect: 'Các chú thích mới (#11, #15, bộ đếm từ, lọc Thư viện) có bản dịch.' },
+    { id: 'c-api', num: '#1', area: 'API', step: 'Gửi thẳng ý tưởng hơn 300 từ tới `/api/gen-banner` (cookie lấy từ trình duyệt).', expect: 'Nhận lỗi 400.', cmd: `curl -s -b "<cookie>" -X POST localhost:8610/api/gen-banner \\
+  -F project=<dự án> -F idea="$(yes từ | head -301 | tr '\\n' ' ')" \\
+  -F size_labels='["1080x1080"]' -F languages='["Tiếng Việt"]'` },
+  ]},
+];
+
+const LABEL = { todo: 'Chưa test', pass: 'Đạt', fail: 'Lỗi' };
+const state = {};      // id -> {status, note, by, at}
+let db = null, user = null, canWrite = false, filter = 'all';
+const $ = (s, el = document) => el.querySelector(s);
+
+function inline(text) {
+  const span = document.createElement('span');
+  text.split(/(`[^`]+`)/).forEach((part) => {
+    if (part.startsWith('`') && part.endsWith('`')) { const c = document.createElement('code'); c.textContent = part.slice(1, -1); span.append(c); }
+    else span.append(part);
+  });
+  return span;
+}
+
+function copyBtn(btn, text) {
+  btn.addEventListener('click', () => {
+    navigator.clipboard.writeText(text).then(() => { btn.textContent = 'Đã chép'; setTimeout(() => (btn.textContent = 'Chép'), 1500); })
+      .catch(() => { const r = document.createRange(); r.selectNodeContents(btn.previousElementSibling); const s = getSelection(); s.removeAllRanges(); s.addRange(r); });
+  });
+}
+
+function build() {
+  const root = $('#groups');
+  for (const g of GROUPS) {
+    const sec = document.createElement('section');
+    sec.className = 'group';
+    sec.innerHTML = `<div class="ghead"><h2></h2><span class="tag"></span></div>`;
+    $('h2', sec).textContent = `${g.key}. ${g.title}`;
+    $('.tag', sec).textContent = g.tag;
+    for (const it of g.items) {
+      const el = document.createElement('article');
+      el.className = 'item'; el.id = it.id; el.dataset.status = 'todo';
+      el.innerHTML = `<div class="num"></div><div class="body">
+        <div class="area"></div><p class="step"></p><p class="expect"></p>
+        <div class="controls"><div class="seg" role="group" aria-label="Trạng thái">
+          <button type="button" data-v="todo">Chưa test</button><button type="button" data-v="pass">Đạt</button><button type="button" data-v="fail">Lỗi</button>
+        </div><span class="who"></span></div>
+        <textarea class="note" id="note-${it.id}" placeholder="Ghi chú: thao tác đã làm, thông báo lỗi, request…" hidden></textarea></div>`;
+      $('.num', el).textContent = it.num;
+      $('.area', el).textContent = it.area;
+      $('.step', el).append(inline(it.step));
+      $('.expect', el).append(inline(it.expect));
+      if (g.key === 'B') { const c = document.createElement('span'); c.className = 'cost'; c.textContent = 'tốn lượt'; $('.area', el).append(' ', c); }
+      if (it.cmd) {
+        const box = document.createElement('div'); box.className = 'cmd';
+        box.innerHTML = '<pre></pre><button class="copy" type="button">Chép</button>';
+        $('pre', box).textContent = it.cmd; copyBtn($('.copy', box), it.cmd);
+        $('.expect', el).before(box);
+      }
+      el.querySelectorAll('.seg button').forEach((b) => b.addEventListener('click', () => setStatus(it.id, b.dataset.v)));
+      const ta = $('.note', el);
+      let t; ta.addEventListener('input', () => { clearTimeout(t); t = setTimeout(() => saveNote(it.id, ta.value), 700); });
+      sec.append(el);
+    }
+    root.append(sec);
+  }
+  copyBtn($('.setup .copy'), $('.setup pre').textContent);
+  document.querySelectorAll('.filters button').forEach((b) => b.addEventListener('click', () => {
+    filter = b.dataset.f;
+    document.querySelectorAll('.filters button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    render();
+  }));
+}
+
+async function render() {
+  const all = GROUPS.flatMap((g) => g.items);
+  let p = 0, f = 0;
+  const ids = [...new Set(Object.values(state).map((s) => s.by).filter(Boolean))];
+  const profiles = user && ids.length ? await user.profiles(ids).catch(() => ({})) : {};
+  for (const it of all) {
+    const s = state[it.id] || {}; const status = s.status || 'todo';
+    if (status === 'pass') p++; if (status === 'fail') f++;
+    const el = document.getElementById(it.id);
+    el.dataset.status = status;
+    el.hidden = filter !== 'all' && filter !== status;
+    el.querySelectorAll('.seg button').forEach((b) => { b.setAttribute('aria-pressed', String(b.dataset.v === status)); b.disabled = !canWrite; });
+    const ta = $('.note', el);
+    ta.hidden = !(status === 'fail' || s.note);
+    ta.readOnly = !canWrite;
+    if (document.activeElement !== ta) ta.value = s.note || '';
+    const who = $('.who', el);
+    if (s.by && status !== 'todo') {
+      const name = (profiles[s.by] && profiles[s.by].name) || 'Ai đó';
+      who.textContent = `${LABEL[status]} · ${name}${s.at ? ' · ' + new Date(s.at).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' }) : ''}`;
+    } else who.textContent = '';
+  }
+  const n = all.length;
+  $('#cP').textContent = p; $('#cF').textContent = f; $('#cT').textContent = n - p - f;
+  $('#barP').style.width = (p / n * 100) + '%'; $('#barF').style.width = (f / n * 100) + '%';
+}
+
+async function write(id, patch) {
+  if (!db || !canWrite) return;
+  const me = await user?.id().catch(() => null);
+  const next = { ...(state[id] || {}), ...patch, by: me, at: new Date().toISOString() };
+  state[id] = next; render();
+  try { await db.collection('results').doc(id).set(next); $('#sync').textContent = 'Đã lưu'; }
+  catch (e) { $('#sync').textContent = e && e.code === 'not_granted' ? 'Bạn chỉ có quyền xem' : 'Chưa lưu được, thử lại sau'; }
+}
+const setStatus = (id, status) => write(id, { status });
+const saveNote = (id, note) => write(id, { note });
+
+build(); render();
+
+(async () => {
+  if (!window.claude || !window.claude.use) { $('#sync').textContent = 'Chế độ xem: trạng thái không được lưu'; return; }
+  [db, user] = await Promise.all([claude.use('db'), claude.use('user')]);
+  if (!db) { $('#sync').textContent = 'Đăng nhập claude.ai để đánh dấu'; render(); return; }
+  canWrite = user ? (await user.can('data.write')) !== false : true;
+  $('#sync').textContent = canWrite ? 'Đang đồng bộ' : 'Bạn chỉ có quyền xem';
+  db.collection('results').onSnapshot((snap) => {
+    for (const d of snap.docs) state[d.id] = d.data() || {};
+    $('#sync').textContent = canWrite ? 'Đã đồng bộ' : 'Bạn chỉ có quyền xem';
+    render();
+  }, () => { $('#sync').textContent = 'Mất kết nối, đang thử lại'; });
+})();
+</script>
+
+</body></html>

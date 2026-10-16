@@ -1,0 +1,237 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}</style></head><body>
+<title>vibecode-kit — Đánh giá tiến độ &amp; mức độ trưởng thành</title>
+<style>
+  :root {
+    color-scheme: light;
+    --ink:        #151a22;
+    --ink-soft:   #55606d;
+    --ink-faint:  #8790a0;
+    --paper:      #f1f3f5;
+    --surface:    #ffffff;
+    --surface-2:  #e9ecef;
+    --line:       #d8dce1;
+    --accent:     #0f7d84;
+    --accent-ink: #ffffff;
+    --accent-soft:#e1f1f0;
+    --code-bg:    #eef0f2;
+    --good:       #0ca30c;
+    --warn:       #c98500;
+    --shadow:     0 1px 2px rgba(21,26,34,.06), 0 8px 24px rgba(21,26,34,.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --ink:        #eef1f4;
+      --ink-soft:   #aab4c0;
+      --ink-faint:  #7c8794;
+      --paper:      #11151b;
+      --surface:    #171c24;
+      --surface-2:  #1e2530;
+      --line:       #2a3038;
+      --accent:     #4dd8cf;
+      --accent-ink: #08211f;
+      --accent-soft:#15302e;
+      --code-bg:    #1b212a;
+      --good:       #35c04a;
+      --warn:       #fab219;
+      --shadow:     0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --ink:        #eef1f4;
+    --ink-soft:   #aab4c0;
+    --ink-faint:  #7c8794;
+    --paper:      #11151b;
+    --surface:    #171c24;
+    --surface-2:  #1e2530;
+    --line:       #2a3038;
+    --accent:     #4dd8cf;
+    --accent-ink: #08211f;
+    --accent-soft:#15302e;
+    --code-bg:    #1b212a;
+    --good:       #35c04a;
+    --warn:       #fab219;
+    --shadow:     0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.35);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  code, .mono, .eyebrow, table.spec, .tag { font-family: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Consolas, monospace; }
+  a { color: var(--accent); }
+  h1, h2, h3 { text-wrap: balance; font-weight: 700; letter-spacing: -0.01em; }
+  code { background: var(--code-bg); border: 1px solid var(--line); border-radius: 4px; padding: .05em .35em; font-size: .88em; }
+
+  .wrap { max-width: 880px; margin: 0 auto; padding: 44px clamp(18px,4vw,40px) 90px; }
+
+  header.doc-header { margin-bottom: 40px; }
+  .eyebrow { display:inline-block; font-size: 11.5px; font-weight:700; letter-spacing:.08em; text-transform: uppercase; color: var(--accent); background: var(--accent-soft); padding: 4px 9px; border-radius: 5px; margin-bottom: 14px; }
+  header.doc-header h1 { font-size: clamp(28px, 4.5vw, 38px); margin: 0 0 12px; }
+  header.doc-header .dek { color: var(--ink-soft); font-size: 16.5px; margin: 0 0 18px; max-width: 62ch; }
+  header.doc-header .meta { display:flex; flex-wrap:wrap; gap: 8px 18px; font-size: 13px; color: var(--ink-faint); border-top: 1px solid var(--line); padding-top: 14px; }
+  header.doc-header .meta strong { color: var(--ink-soft); font-weight: 600; }
+
+  section { margin: 0 0 54px; }
+  section .eyebrow { margin-bottom: 10px; }
+  section h2 { font-size: 22px; margin: 0 0 6px; }
+  section .lede { color: var(--ink-soft); font-size: 15px; margin: 0 0 20px; max-width: 66ch; }
+  p { max-width: 68ch; font-size: 15.5px; }
+  p + p { margin-top: 12px; }
+
+  /* stat tiles */
+  .stats { display:grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 12px; }
+  .stat { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 16px 14px; box-shadow: var(--shadow); }
+  .stat .num { font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; line-height:1; }
+  .stat .lbl { font-size: 12.5px; color: var(--ink-soft); margin-top: 6px; }
+
+  /* phase table with status chips */
+  .phase-list { display:flex; flex-direction:column; gap:10px; }
+  .phase-row { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; box-shadow: var(--shadow); display:grid; grid-template-columns: 160px 150px 1fr; gap: 14px; align-items:start; }
+  .phase-row .name { font-weight: 700; font-size: 14.5px; }
+  .phase-row .name small { display:block; font-weight:400; color: var(--ink-faint); font-size:11.5px; margin-top:2px; }
+  .chip { display:inline-flex; align-items:center; gap:6px; font-size: 12px; font-weight:600; padding: 3px 9px 3px 7px; border-radius: 999px; background: var(--surface-2); color: var(--ink); border: 1px solid var(--line); white-space:nowrap; }
+  .chip .dot { width:8px; height:8px; border-radius:50%; flex:none; }
+  .chip.done .dot { background: var(--good); }
+  .chip.partial .dot { background: var(--warn); }
+  .chip.paused .dot { background: var(--ink-faint); }
+  .phase-row .evidence { font-size: 13.5px; color: var(--ink-soft); }
+  .phase-row .evidence code { font-size: .82em; }
+
+  ul.plain, ol.plain { padding-left: 22px; margin: 0; }
+  ul.plain li, ol.plain li { margin: 9px 0; font-size: 15.5px; }
+  ul.plain li::marker { color: var(--ink-faint); }
+  ol.plain li::marker { color: var(--accent); font-weight:700; font-family: ui-monospace, monospace; }
+
+  .grid-2 { display:grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  @media (max-width: 700px) { .grid-2 { grid-template-columns: 1fr; } .phase-row { grid-template-columns: 1fr; } }
+
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; box-shadow: var(--shadow); }
+  .panel h3 { margin: 0 0 12px; font-size: 15px; display:flex; align-items:center; gap:8px; }
+  .panel.strengths h3 { color: var(--good); }
+  .panel.risks h3 { color: var(--warn); }
+
+  .card.callout { background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 10px; padding: 16px 18px; box-shadow: var(--shadow); margin: 16px 0; }
+
+  footer.doc-footer { border-top: 1px solid var(--line); padding-top: 20px; margin-top: 50px; font-size: 13px; color: var(--ink-faint); display:flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+</style>
+
+<div class="wrap">
+  <header class="doc-header">
+    <span class="eyebrow">Tài liệu đánh giá</span>
+    <h1>vibecode-kit — Đánh giá tiến độ &amp; mức độ trưởng thành</h1>
+    <p class="dek">Đánh giá dựa trên việc đọc trực tiếp code, git log và file state trong repo — không dựa vào checkbox hay ghi chú cũ nếu chưa verify lại được. Đi kèm tài liệu kỹ thuật mô tả cơ chế Loop/Harness/Contracts/Checkpoint.</p>
+    <div class="meta">
+      <span><strong>Ngày đánh giá</strong> — 2026-08-11</span>
+      <span><strong>Phương pháp</strong> — đối chiếu filesystem + git history, không suy đoán từ tài liệu</span>
+      <span><strong>Phạm vi</strong> — repo <code>vibecode-kit</code>, theo 6 phase của <code>ROADMAP.md</code></span>
+    </div>
+  </header>
+
+  <section id="summary">
+    <span class="eyebrow">§01</span>
+    <h2>Tóm tắt điều hành</h2>
+    <p class="lede">Kit đã trưởng thành hết mức cho một hệ agent-orchestration <strong>local, single-user</strong> — kỷ luật kỹ thuật (contracts, cost-aware harness, checkpoint) chắc, nhưng chủ động dừng lại trước 2 năng lực tốn kém nhất: điều phối đa agent xuyên-skill và tự học.</p>
+    <div class="stats">
+      <div class="stat"><span class="num">4 / 6</span><span class="lbl">phase hoàn thiện đầy đủ (1–4)</span></div>
+      <div class="stat"><span class="num">2</span><span class="lbl">phase tạm hoãn có chủ đích (5–6), có điều kiện mở lại rõ ràng</span></div>
+      <div class="stat"><span class="num">7</span><span class="lbl">checkbox plan lỗi thời phát hiện &amp; sửa trong lần audit này</span></div>
+      <div class="stat"><span class="num">1&nbsp;chiều</span><span class="lbl">Memory mới verify chiều viết — chiều đọc còn chưa chạy thật</span></div>
+    </div>
+    <div class="card callout">
+      <strong>Bằng chứng mạnh nhất:</strong> kit đang <em>tự dùng chính nó để build chính nó</em> — <code>specs/PIPELINE_STATE.md</code>, <code>specs/IMPLEMENTATION_PLAN.md</code> trong repo là sản phẩm của chính <code>vibe-pipeline</code> chạy trên chính vibecode-kit (self-hosting). Không phải demo trên project giả định.
+    </div>
+  </section>
+
+  <section id="maturity">
+    <span class="eyebrow">§02</span>
+    <h2>Mức độ trưởng thành theo phase</h2>
+    <p class="lede">Dùng nhãn định tính (Hoàn thiện / Một phần / Tạm hoãn) thay vì phần trăm — một bài học rút ra ngay trong quá trình audit lần này: gán số % cụ thể cho việc "chưa làm" từng gây hiểu nhầm nghiêm trọng hơn nhãn định tính rõ ràng.</p>
+    <div class="phase-list">
+      <div class="phase-row">
+        <div class="name">Phase 1<small>Execution</small></div>
+        <div><span class="chip done"><span class="dot"></span>Hoàn thiện</span></div>
+        <div class="evidence">Skills/Loop/Harness chạy thật, <code>engines/contracts.md</code> vượt cả scope gốc. MCP mới ở mức client-side tool.</div>
+      </div>
+      <div class="phase-row">
+        <div class="name">Phase 2<small>Memory, Reflection</small></div>
+        <div><span class="chip done"><span class="dot"></span>Hoàn thiện*</span></div>
+        <div class="evidence">Reflection có thật (ERROR LOG hypothesis field). Memory: 2 file thật đã bootstrap 2026-08-11, nhưng *chỉ verify chiều viết — chưa có pipeline thứ 2 xác nhận planner đọc lại đúng.</div>
+      </div>
+      <div class="phase-row">
+        <div class="name">Phase 3<small>Observability, Evaluation</small></div>
+        <div><span class="chip done"><span class="dot"></span>Hoàn thiện</span></div>
+        <div class="evidence"><code>quality-log.jsonl</code> + <code>quality_trend.py</code> phát hiện regression thật. README mục "Theo Dõi Agent" bổ sung 2026-08-11.</div>
+      </div>
+      <div class="phase-row">
+        <div class="name">Phase 4<small>Planning, Checkpoint</small></div>
+        <div><span class="chip done"><span class="dot"></span>Hoàn thiện</span></div>
+        <div class="evidence"><code>checkpoint.md</code> có 2 consumer thật (vibe-pipeline, vibe-debugger). Task Queue/Workflow giữ đơn giản có chủ đích, không phải thiếu.</div>
+      </div>
+      <div class="phase-row">
+        <div class="name">Phase 5<small>Multi-Agent, Orchestrator</small></div>
+        <div><span class="chip paused"><span class="dot"></span>Tạm hoãn có chủ đích</span></div>
+        <div class="evidence">Chưa có Orchestrator xuyên-skill, chưa có Researcher agent. Chờ 1 use case thật mà Loop/Harness không giải quyết được.</div>
+      </div>
+      <div class="phase-row">
+        <div class="name">Phase 6<small>Learning, Auto-optimization</small></div>
+        <div><span class="chip paused"><span class="dot"></span>Tạm hoãn có chủ đích</span></div>
+        <div class="evidence"><code>quality-log.jsonl</code>/<code>memory-log.jsonl</code> mới có vài dòng — chưa đủ lịch sử thật để học gì. Auto-apply cũng xung khắc nguyên tắc ⛔ STOP cho người.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="strengths-risks">
+    <span class="eyebrow">§03</span>
+    <h2>Điểm mạnh &amp; rủi ro</h2>
+    <div class="grid-2">
+      <div class="panel strengths">
+        <h3>✓ Điểm mạnh</h3>
+        <ul class="plain">
+          <li><strong>Compose, không copy-paste</strong> — 1 skill mới dùng Loop/Harness chỉ bằng khai config, engine không phải sửa.</li>
+          <li><strong>Refute-first ở 2 lớp</strong> — verifier cố bác bỏ finding trước khi confirm; worker tự đặt giả thuyết phản biện trước khi báo fail.</li>
+          <li><strong>Cost-aware theo thiết kế</strong> — VERIFY_POLICY triage theo severity, OPT_IN bắt buộc hỏi trước khi spawn nhiều agent.</li>
+          <li><strong>Checkpoint tổng quát hoá tốt</strong> — 1 protocol, 2 state file khác schema hoàn toàn (PIPELINE_STATE.md, BUG_REPORT.md) vẫn dùng chung được.</li>
+          <li><strong>Tự dùng chính mình</strong> — v2 upgrade của kit được thực hiện bằng chính vibe-pipeline, để lại state file thật làm bằng chứng.</li>
+        </ul>
+      </div>
+      <div class="panel risks">
+        <h3>⚠ Điểm yếu &amp; rủi ro</h3>
+        <ul class="plain">
+          <li><strong>Tài liệu kế hoạch dễ lỗi thời</strong> — checkbox từng đúng rồi sai khi 1 quyết định bị đảo ngược mà không đồng bộ lại (đã xảy ra thật với Phase 04 rename, phát hiện &amp; sửa 2026-08-11).</li>
+          <li><strong>Memory chưa verify 2 chiều</strong> — cơ chế đọc dựa vào instruction bằng lời cho LLM (orchestrator), chưa quan sát được nó chạy đúng trong thực tế.</li>
+          <li><strong>Observability vẫn thủ công</strong> — dựa vào CLI (Ctrl+O/<code>/workflows</code>/<code>/usage</code>), chưa có dashboard tổng hợp cho nhiều người dùng.</li>
+          <li><strong>Star-topology, không multi-agent thật</strong> — mọi giao tiếp qua 1 orchestrator; không có agent gọi thẳng agent khác hay Researcher chuyên biệt.</li>
+          <li><strong>Dữ liệu lịch sử còn mỏng</strong> — <code>quality-log.jsonl</code>/<code>memory-log.jsonl</code> mới có vài dòng, chưa đủ để tự tin nhận diện xu hướng.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="recommendations">
+    <span class="eyebrow">§04</span>
+    <h2>Khuyến nghị — theo thứ tự ưu tiên</h2>
+    <ol class="plain">
+      <li>Chạy 1 pipeline <strong>thứ hai</strong> thật trong repo này để verify chiều đọc của Memory: xác nhận orchestrator có thêm <code>PROJECT_MEMORY.md</code> vào <code>paths</code> khi dispatch planner, và planner có thực sự áp dụng nội dung đó.</li>
+      <li>Đưa việc "audit checkbox plan vs. filesystem/git log" thành thói quen định kỳ — đặc biệt sau bất kỳ quyết định nào bị đảo ngược, để tránh lặp lại tình huống Phase 04 vừa phát hiện.</li>
+      <li>Tiếp tục dùng kit trên feature/bug thật để tích luỹ <code>quality-log.jsonl</code>/<code>memory-log.jsonl</code> — đây là điều kiện tiên quyết trước khi cân nhắc mở lại Phase 6.</li>
+      <li>Giữ nguyên quyết định hoãn Phase 5/6 cho tới khi 1 trong 2 "điều kiện mở lại" ở <code>ROADMAP.md</code> thật sự xảy ra — không chủ động đầu tư trước cho nhu cầu giả định.</li>
+    </ol>
+  </section>
+
+  <section id="conclusion">
+    <span class="eyebrow">§05</span>
+    <h2>Kết luận</h2>
+    <p>vibecode-kit hiện ở mức <strong>trưởng thành vững cho một hệ thống agent-orchestration nội bộ, dùng cá nhân/nhóm nhỏ, chạy local</strong>: engine layer rõ ràng, giao ước I/O nhất quán, có cơ chế tự phản biện và tự phục hồi sau lỗi. Việc chưa có multi-agent xuyên-skill hay vòng lặp tự học <strong>không phải thiếu sót</strong> — đây là điểm dừng có chủ đích, đúng với triết lý "làm tốt thực thi trước, rồi mới tăng trí nhớ/quan sát, sau cùng mới đến đa agent/tự tiến hoá" mà chính <code>ROADMAP.md</code> đặt ra. Rủi ro thật sự không nằm ở việc "thiếu tính năng", mà ở việc <strong>tài liệu và checkbox có xu hướng lỗi thời nhanh hơn code</strong> — đây là thứ đáng đầu tư quy trình nhất trong ngắn hạn.</p>
+  </section>
+
+  <footer class="doc-footer">
+    <span>vibecode-kit — đánh giá tiến độ, biên soạn 2026-08-11</span>
+    <span>Xem thêm: tài liệu kỹ thuật mô tả cơ chế Loop/Harness/Contracts/Checkpoint (bản đi kèm)</span>
+  </footer>
+</div>
+
+</body></html>
